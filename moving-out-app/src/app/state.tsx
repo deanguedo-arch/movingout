@@ -125,7 +125,7 @@ function buildMigratedMonthlyRows(args: { label: string; monthlyValue: number })
   ];
 }
 
-function migrateSubmissionToCurrentSchema(args: {
+export function migrateSubmissionToCurrentSchema(args: {
   submission: Submission;
   schema: AssignmentSchema;
   constants: Constants;

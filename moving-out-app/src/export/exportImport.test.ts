@@ -22,6 +22,8 @@ function emptyFlags(): ReadinessFlags {
     affordability_fail: false,
     deficit: false,
     fragile_buffer: false,
+    low_vehicle_price: false,
+    unsourced_categories: [],
     surplus_or_deficit_amount: 0,
     fix_next: [],
   };
@@ -149,12 +151,21 @@ describe("ZIP export/import", () => {
     expect(names).toContain("evidence/items.json");
     expect(names).toContain("evidence/manifest.json");
     expect(names.some((name) => name.startsWith("evidence/evidence_f1_"))).toBe(true);
+
+    const constantsText = await zip.file("constants.json")?.async("string");
+    expect(constantsText).toBeTruthy();
+    const exportedConstants = JSON.parse(String(constantsText)) as ReturnType<typeof getDefaultConstants>;
+    expect(exportedConstants.economic_snapshot.minimum_wage_ab.value).toBe(constants.economic_snapshot.minimum_wage_ab.value);
+    expect(exportedConstants.economic_snapshot.gas_benchmark_ab.value).toBe(constants.economic_snapshot.gas_benchmark_ab.value);
+    expect(exportedConstants.economic_snapshot.cpi_yoy_canada.value).toBe(constants.economic_snapshot.cpi_yoy_canada.value);
   });
 
   test("import restores submission, evidence, constants, and logs", async () => {
     const schema = getAssignmentSchema();
     const constants = getDefaultConstants();
     constants.thresholds.buffer_warning_threshold.value = 222;
+    constants.economic_snapshot.gas_benchmark_ab.value = 1.61;
+    constants.economic_snapshot.cpi_yoy_canada.value = 2.5;
     const submission = makeSubmission();
     const evidenceItems: EvidenceItem[] = [
       {
@@ -207,6 +218,8 @@ describe("ZIP export/import", () => {
 
     expect(storedSubmission?.id).toBe(submission.id);
     expect(storedConstants?.thresholds.buffer_warning_threshold.value).toBe(222);
+    expect(storedConstants?.economic_snapshot.gas_benchmark_ab.value).toBe(1.61);
+    expect(storedConstants?.economic_snapshot.cpi_yoy_canada.value).toBe(2.5);
     expect(storedEvidenceItems).toHaveLength(1);
     expect(storedEvidenceFiles).toHaveLength(1);
     expect(storedEvidenceFiles[0].filename).toBe("rental-proof.pdf");
