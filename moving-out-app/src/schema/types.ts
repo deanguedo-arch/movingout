@@ -1,12 +1,26 @@
 export type FieldRole = "input" | "derived" | "reflection";
-export type FieldType = "text" | "number" | "select" | "textarea" | "checkbox" | "food_table";
+export type FieldType =
+  | "text"
+  | "number"
+  | "select"
+  | "textarea"
+  | "checkbox"
+  | "food_table"
+  | "expense_table";
 export type EvidenceType = "rental_ad" | "vehicle_ad" | "other";
+
+export type SectionGuide = {
+  what_this_part: string;
+  updated_for_today: string;
+  how_to_research: string;
+};
 
 export type AssignmentSection = {
   id: string;
   title: string;
   description?: string;
   points?: number;
+  guide?: SectionGuide;
 };
 
 export type AssignmentFieldValidation = {
@@ -27,11 +41,18 @@ export type AssignmentFieldUi = {
   help_text?: string;
   prefix?: string;
   read_only?: boolean;
+  info_title?: string;
+  info_blurb?: string;
+  info_source_url?: string;
+  info_source_label?: string;
   source_for_field_id?: string;
   table_columns?: Array<{
     id: string;
     label: string;
-    type: "text" | "number" | "url";
+    type: "text" | "number" | "url" | "select" | "derived";
+    options?: AssignmentFieldOption[];
+    derived_formula?: "qty_x_unit_to_annual" | "annual_div_12" | "sum_column";
+    source_column_id?: string;
   }>;
   default_rows?: number;
 };
@@ -129,6 +150,20 @@ export type Constants = {
   food: {
     weeks_per_month: NumericConstant;
     default_items: string[];
+  };
+  economic_snapshot: {
+    minimum_wage_ab: NumericConstant & {
+      source_url: string;
+      last_updated: string;
+    };
+    gas_benchmark_ab: NumericConstant & {
+      source_url: string;
+      last_updated: string;
+    };
+    cpi_yoy_canada: NumericConstant & {
+      source_url: string;
+      last_updated: string;
+    };
   };
   teacher_mode: {
     default_passcode: string;
@@ -275,5 +310,15 @@ export type FoodTableRow = {
   item: string;
   planned_purchase: string;
   estimated_cost: number;
+  source_url: string;
+};
+
+export type ExpenseTableRow = {
+  id: string;
+  item: string;
+  quantity_per_year?: number;
+  average_cost?: number;
+  annual_total?: number;
+  monthly_total?: number;
   source_url: string;
 };

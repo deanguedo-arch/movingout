@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "title": "Moving Out Project / Life After High School Budgeting",
   "description": "Research-driven budgeting simulation for CALM moving out assignment.",
   "sections": [
@@ -7,43 +7,78 @@
       "id": "student_profile",
       "title": "Profile + Plan",
       "description": "Your personal plan and living context.",
-      "points": 10
+      "points": 10,
+      "guide": {
+        "what_this_part": "Set your move-out profile, timing, and personal context.",
+        "updated_for_today": "The original booklet assumed one fixed scenario. This app keeps your plan personalized and current.",
+        "how_to_research": "Use your class assignment plus your real target city/lifestyle details."
+      }
     },
     {
       "id": "income",
       "title": "Income",
       "description": "Use real-world pay information and estimate monthly take-home income.",
-      "points": 20
+      "points": 20,
+      "guide": {
+        "what_this_part": "Estimate monthly take-home pay using either net paycheque mode or hourly estimate mode.",
+        "updated_for_today": "Instead of old fixed deductions, net-pay mode anchors to current payroll tools and transparent source links.",
+        "how_to_research": "Use CRA PDOC or a sample paystub and record your source URL/evidence."
+      }
     },
     {
       "id": "housing",
       "title": "Housing",
       "description": "Research rental options and complete monthly housing cost.",
-      "points": 25
+      "points": 25,
+      "guide": {
+        "what_this_part": "Research rent and utility-related costs for your chosen housing option.",
+        "updated_for_today": "Rough legacy assumptions are replaced by source-based local estimates.",
+        "how_to_research": "Use current rental ads and utility estimates for your city."
+      }
     },
     {
       "id": "transportation",
       "title": "Transportation",
       "description": "Compare vehicle and transit costs using current assumptions.",
-      "points": 20
+      "points": 20,
+      "guide": {
+        "what_this_part": "Compare vehicle and transit transportation costs using current assumptions.",
+        "updated_for_today": "Operating cost now reflects your km/month, fuel economy, and gas price. Transit uses a cached city snapshot.",
+        "how_to_research": "Use vehicle ads, ETS fares, and local fuel sources."
+      }
     },
     {
       "id": "living_expenses",
       "title": "Essentials",
       "description": "Food, clothing, hygiene, recreation, savings, and misc spending.",
-      "points": 35
+      "points": 35,
+      "guide": {
+        "what_this_part": "Plan food and essentials with itemized tables and monthly rollups.",
+        "updated_for_today": "Booklet worksheets are converted into structured table inputs with dropdowns and source tracking.",
+        "how_to_research": "Use grocery flyers, store websites, and real product/service pricing."
+      }
     },
     {
       "id": "reflections",
       "title": "Reflections",
       "description": "Explain your decisions and tradeoffs.",
-      "points": 20
+      "points": 20,
+      "guide": {
+        "what_this_part": "Explain your choices, tradeoffs, and value alignment.",
+        "updated_for_today": "Use your computed totals, warnings, and source quality to justify decisions.",
+        "how_to_research": "Reference your own budget evidence and priorities."
+      }
     },
     {
       "id": "summary",
       "title": "Summary",
       "description": "Final monthly totals and affordability indicators.",
-      "points": 30
+      "points": 30,
+      "guide": {
+        "what_this_part": "Review totals, readiness flags, and final affordability picture.",
+        "updated_for_today": "The app adds transparent warnings for deficit, affordability, and missing evidence/sources.",
+        "how_to_research": "Use this page to decide what to adjust before export/submission."
+      }
     }
   ],
   "fields": [
@@ -54,7 +89,9 @@
       "type": "text",
       "role": "input",
       "required": false,
-      "ui": { "placeholder": "Your full name" }
+      "ui": {
+        "placeholder": "Your full name"
+      }
     },
     {
       "id": "class_name",
@@ -63,7 +100,9 @@
       "type": "text",
       "role": "input",
       "required": false,
-      "ui": { "placeholder": "e.g., CALM 20" }
+      "ui": {
+        "placeholder": "e.g., CALM 20"
+      }
     },
     {
       "id": "roommate_name",
@@ -80,7 +119,11 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 17, "max": 35, "step": 1 }
+      "validation": {
+        "min": 17,
+        "max": 35,
+        "step": 1
+      }
     },
     {
       "id": "career_path",
@@ -106,9 +149,21 @@
       "role": "input",
       "required": true,
       "options": [
-        { "label": "A) Enter net pay per paycheque (recommended)", "value": "net_paycheque" },
-        { "label": "B) Estimate from hourly wage + deductions", "value": "hourly_estimate" }
-      ]
+        {
+          "label": "A) Enter net pay per paycheque (recommended)",
+          "value": "net_paycheque"
+        },
+        {
+          "label": "B) Estimate from hourly wage + deductions",
+          "value": "hourly_estimate"
+        }
+      ],
+      "ui": {
+        "info_title": "Income Mode",
+        "info_blurb": "Use net-pay mode when you have take-home pay from CRA PDOC or a paystub. Use estimator mode only when net pay is unavailable.",
+        "info_source_url": "https://www.canada.ca/en/revenue-agency/services/e-services/digital-services-businesses/payroll-deductions-online-calculator.html",
+        "info_source_label": "CRA PDOC"
+      }
     },
     {
       "id": "net_pay_per_cheque",
@@ -117,10 +172,17 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
       "ui": {
         "prefix": "$",
-        "help_text": "Use your sample paystub or CRA payroll calculator result."
+        "help_text": "Use your sample paystub or CRA payroll calculator result.",
+        "info_title": "Net Pay Per Paycheque",
+        "info_blurb": "Enter take-home pay after deductions, not gross pay. This keeps your budget aligned to real money available each month.",
+        "info_source_url": "https://www.canada.ca/en/revenue-agency/services/e-services/digital-services-businesses/payroll-deductions-online-calculator.html",
+        "info_source_label": "CRA PDOC"
       }
     },
     {
@@ -130,7 +192,15 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 1, "max": 8, "step": 1 }
+      "validation": {
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      "ui": {
+        "info_title": "Pay Frequency",
+        "info_blurb": "Most part-time or hourly jobs pay 2 or more times monthly. Enter your actual pay frequency for a realistic monthly total."
+      }
     },
     {
       "id": "net_pay_source_url",
@@ -152,8 +222,16 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "max": 200, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "max": 200,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$",
+        "info_title": "Hourly Estimate Mode",
+        "info_blurb": "If net pay is unknown, estimate gross pay from wage and hours. The app applies fallback deduction rates for planning only."
+      }
     },
     {
       "id": "hours_per_week",
@@ -162,7 +240,15 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "max": 80, "step": 0.1 }
+      "validation": {
+        "min": 0,
+        "max": 80,
+        "step": 0.1
+      },
+      "ui": {
+        "info_title": "Hours Worked Per Week",
+        "info_blurb": "Use a realistic weekly average including schedule changes, not the best-case week."
+      }
     },
     {
       "id": "other_monthly_income",
@@ -171,8 +257,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "gross_monthly_income",
@@ -182,7 +273,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "gross_monthly_income",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "net_monthly_income",
@@ -192,7 +286,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "net_monthly_income",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "roommate_choice",
@@ -202,8 +299,14 @@
       "role": "input",
       "required": true,
       "options": [
-        { "label": "Live on my own", "value": "alone" },
-        { "label": "Have one roommate", "value": "roommate" }
+        {
+          "label": "Live on my own",
+          "value": "alone"
+        },
+        {
+          "label": "Have one roommate",
+          "value": "roommate"
+        }
       ]
     },
     {
@@ -213,7 +316,9 @@
       "type": "text",
       "role": "input",
       "required": true,
-      "ui": { "placeholder": "e.g., 2-bedroom basement suite" }
+      "ui": {
+        "placeholder": "e.g., 2-bedroom basement suite"
+      }
     },
     {
       "id": "rent_monthly",
@@ -222,8 +327,15 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$",
+        "info_title": "Rent Research",
+        "info_blurb": "Use an actual listing for the unit you would rent. If you use a roommate, only enter your share."
+      }
     },
     {
       "id": "rent_source_url",
@@ -244,8 +356,15 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$",
+        "info_title": "Utilities Estimate",
+        "info_blurb": "Include water, gas, and electricity where applicable. Check whether any utility is already included in rent."
+      }
     },
     {
       "id": "utilities_source_url",
@@ -266,8 +385,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "internet_phone_monthly",
@@ -276,8 +400,13 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "other_housing_monthly",
@@ -286,8 +415,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "moving_in_one_time_cost",
@@ -296,8 +430,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "housing_monthly_total",
@@ -307,7 +446,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "housing_monthly_total",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "transport_option_label",
@@ -316,7 +458,9 @@
       "type": "text",
       "role": "input",
       "required": true,
-      "ui": { "placeholder": "e.g., 2017 compact car / monthly ARC" }
+      "ui": {
+        "placeholder": "e.g., 2017 compact car / monthly ARC"
+      }
     },
     {
       "id": "transport_mode",
@@ -326,9 +470,18 @@
       "role": "input",
       "required": true,
       "options": [
-        { "label": "Car", "value": "car" },
-        { "label": "Truck/SUV", "value": "truck" },
-        { "label": "Transit", "value": "transit" }
+        {
+          "label": "Car",
+          "value": "car"
+        },
+        {
+          "label": "Truck/SUV",
+          "value": "truck"
+        },
+        {
+          "label": "Transit",
+          "value": "transit"
+        }
       ]
     },
     {
@@ -338,8 +491,15 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$",
+        "info_title": "Vehicle Price",
+        "info_blurb": "Use a real ad and include the listed price. This project flags prices below the minimum assignment threshold."
+      }
     },
     {
       "id": "vehicle_price_source_url",
@@ -360,8 +520,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "vehicle_term_months",
@@ -370,7 +535,11 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 12, "max": 96, "step": 1 }
+      "validation": {
+        "min": 12,
+        "max": 96,
+        "step": 1
+      }
     },
     {
       "id": "vehicle_apr_percent",
@@ -379,7 +548,11 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "max": 30, "step": 0.01 }
+      "validation": {
+        "min": 0,
+        "max": 30,
+        "step": 0.01
+      }
     },
     {
       "id": "km_per_month",
@@ -388,7 +561,10 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 1 }
+      "validation": {
+        "min": 0,
+        "step": 1
+      }
     },
     {
       "id": "fuel_economy_l_per_100km",
@@ -397,7 +573,15 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 1, "max": 40, "step": 0.1 }
+      "validation": {
+        "min": 1,
+        "max": 40,
+        "step": 0.1
+      },
+      "ui": {
+        "info_title": "Fuel Economy",
+        "info_blurb": "Use the vehicle?s rated or realistic fuel economy so fuel costs match your selected transport option."
+      }
     },
     {
       "id": "gas_price_per_litre",
@@ -406,8 +590,15 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.001 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.001
+      },
+      "ui": {
+        "prefix": "$",
+        "info_title": "Gas Price Benchmark",
+        "info_blurb": "Use a current local benchmark in $/L. Teacher snapshot values can be used as a starting point."
+      }
     },
     {
       "id": "maintenance_monthly",
@@ -416,8 +607,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "transit_monthly_pass",
@@ -426,10 +622,17 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
       "ui": {
         "prefix": "$",
-        "help_text": "Leave blank to use cached city fare snapshot."
+        "help_text": "Leave blank to use cached city fare snapshot.",
+        "info_title": "Transit Pass",
+        "info_blurb": "Leave blank to use the cached city snapshot, or enter a sourced fare value.",
+        "info_source_url": "https://www.edmonton.ca/ets/fares-passes",
+        "info_source_label": "ETS Fares"
       }
     },
     {
@@ -451,8 +654,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "parking_monthly",
@@ -461,8 +669,13 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "transport_loan_payment_monthly",
@@ -472,7 +685,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "transport_loan_payment_monthly",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "transport_fuel_monthly",
@@ -482,7 +698,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "transport_fuel_monthly",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "transport_operating_monthly",
@@ -492,7 +711,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "transport_operating_monthly",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "transport_monthly_total",
@@ -502,7 +724,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "transport_monthly_total",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "food_table_weekly",
@@ -512,14 +737,142 @@
       "role": "input",
       "required": true,
       "ui": {
-        "help_text": "Item, planned purchase, estimated cost, and source.",
+        "help_text": "Choose listed food/household items or use Other for same food group replacements.",
         "default_rows": 10,
         "table_columns": [
-          { "id": "item", "label": "Item", "type": "text" },
-          { "id": "planned_purchase", "label": "Planned Purchase", "type": "text" },
-          { "id": "estimated_cost", "label": "Estimated Cost", "type": "number" },
-          { "id": "source_url", "label": "Source URL", "type": "url" }
-        ]
+          {
+            "id": "item",
+            "label": "Item",
+            "type": "select",
+            "options": [
+              {
+                "label": "Spaghetti",
+                "value": "Spaghetti"
+              },
+              {
+                "label": "Spaghetti sauce",
+                "value": "Spaghetti sauce"
+              },
+              {
+                "label": "Potatoes",
+                "value": "Potatoes"
+              },
+              {
+                "label": "Eggs",
+                "value": "Eggs"
+              },
+              {
+                "label": "Milk",
+                "value": "Milk"
+              },
+              {
+                "label": "Bread",
+                "value": "Bread"
+              },
+              {
+                "label": "Butter/Margarine",
+                "value": "Butter/Margarine"
+              },
+              {
+                "label": "Orange Juice",
+                "value": "Orange Juice"
+              },
+              {
+                "label": "Chicken",
+                "value": "Chicken"
+              },
+              {
+                "label": "Lean hamburger",
+                "value": "Lean hamburger"
+              },
+              {
+                "label": "Pork chops",
+                "value": "Pork chops"
+              },
+              {
+                "label": "Sandwich meat",
+                "value": "Sandwich meat"
+              },
+              {
+                "label": "Apples",
+                "value": "Apples"
+              },
+              {
+                "label": "Oranges",
+                "value": "Oranges"
+              },
+              {
+                "label": "Bananas",
+                "value": "Bananas"
+              },
+              {
+                "label": "Lettuce",
+                "value": "Lettuce"
+              },
+              {
+                "label": "Instant dinners",
+                "value": "Instant dinners"
+              },
+              {
+                "label": "Frozen vegetables",
+                "value": "Frozen vegetables"
+              },
+              {
+                "label": "Canned corn/peas",
+                "value": "Canned corn/peas"
+              },
+              {
+                "label": "Solid white tuna",
+                "value": "Solid white tuna"
+              },
+              {
+                "label": "Cheese",
+                "value": "Cheese"
+              },
+              {
+                "label": "Ice cream",
+                "value": "Ice cream"
+              },
+              {
+                "label": "Coffee/Tea",
+                "value": "Coffee/Tea"
+              },
+              {
+                "label": "Toilet paper",
+                "value": "Toilet paper"
+              },
+              {
+                "label": "Kleenex",
+                "value": "Kleenex"
+              },
+              {
+                "label": "Paper towel/napkins",
+                "value": "Paper towel/napkins"
+              },
+              {
+                "label": "Other (same food group)",
+                "value": "Other (same food group)"
+              }
+            ]
+          },
+          {
+            "id": "planned_purchase",
+            "label": "Planned Purchase",
+            "type": "text"
+          },
+          {
+            "id": "estimated_cost",
+            "label": "Estimated Cost",
+            "type": "number"
+          },
+          {
+            "id": "source_url",
+            "label": "Source URL",
+            "type": "url"
+          }
+        ],
+        "info_title": "Food + Household Planner",
+        "info_blurb": "Research one-week costs, then the app multiplies by the monthly factor. Keep sources for transparency."
       }
     },
     {
@@ -530,7 +883,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "groceries_weekly_total",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "groceries_monthly",
@@ -540,17 +896,355 @@
       "role": "derived",
       "required": false,
       "compute_key": "groceries_monthly",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
-      "id": "clothing_monthly",
+      "id": "clothing_table_annual",
       "section_id": "living_expenses",
-      "label": "Clothing",
-      "type": "number",
+      "label": "Clothing Planner (Annual to Monthly)",
+      "type": "expense_table",
       "role": "input",
       "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "ui": {
+        "help_text": "Estimate yearly quantity and average cost for each clothing item.",
+        "default_rows": 6,
+        "table_columns": [
+          {
+            "id": "item",
+            "label": "Item",
+            "type": "select",
+            "options": [
+              {
+                "label": "Shirts",
+                "value": "Shirts"
+              },
+              {
+                "label": "Jeans",
+                "value": "Jeans"
+              },
+              {
+                "label": "Cotton/Dress pants/skirts",
+                "value": "Cotton/Dress pants/skirts"
+              },
+              {
+                "label": "Outdoor coats",
+                "value": "Outdoor coats"
+              },
+              {
+                "label": "Swimsuits",
+                "value": "Swimsuits"
+              },
+              {
+                "label": "Shorts",
+                "value": "Shorts"
+              },
+              {
+                "label": "T-shirts/Tops",
+                "value": "T-shirts/Tops"
+              },
+              {
+                "label": "Suits/Sports jackets/Dresses",
+                "value": "Suits/Sports jackets/Dresses"
+              },
+              {
+                "label": "Pajamas",
+                "value": "Pajamas"
+              },
+              {
+                "label": "Underwear/Socks/Ties",
+                "value": "Underwear/Socks/Ties"
+              },
+              {
+                "label": "Runners/Casual shoes",
+                "value": "Runners/Casual shoes"
+              },
+              {
+                "label": "Dress shoes/boots",
+                "value": "Dress shoes/boots"
+              },
+              {
+                "label": "Sports clothing",
+                "value": "Sports clothing"
+              },
+              {
+                "label": "Other clothing",
+                "value": "Other clothing"
+              }
+            ]
+          },
+          {
+            "id": "quantity_per_year",
+            "label": "Quantity/Year",
+            "type": "number"
+          },
+          {
+            "id": "average_cost",
+            "label": "Avg Cost/Item",
+            "type": "number"
+          },
+          {
+            "id": "annual_total",
+            "label": "Annual Total",
+            "type": "derived",
+            "derived_formula": "qty_x_unit_to_annual"
+          },
+          {
+            "id": "source_url",
+            "label": "Source URL",
+            "type": "url"
+          }
+        ]
+      }
+    },
+    {
+      "id": "clothing_monthly_derived",
+      "section_id": "living_expenses",
+      "label": "Clothing Monthly Total (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "clothing_monthly_derived",
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
+    },
+    {
+      "id": "health_hygiene_table_annual",
+      "section_id": "living_expenses",
+      "label": "Health + Hygiene Planner (Annual to Monthly)",
+      "type": "expense_table",
+      "role": "input",
+      "required": true,
+      "ui": {
+        "help_text": "Enter annual totals, then monthly values are derived automatically.",
+        "default_rows": 6,
+        "table_columns": [
+          {
+            "id": "item",
+            "label": "Item",
+            "type": "select",
+            "options": [
+              {
+                "label": "Dental",
+                "value": "Dental"
+              },
+              {
+                "label": "Medications",
+                "value": "Medications"
+              },
+              {
+                "label": "Toiletries",
+                "value": "Toiletries"
+              },
+              {
+                "label": "Make-up/Haircuts/Hair products",
+                "value": "Make-up/Haircuts/Hair products"
+              },
+              {
+                "label": "Dry-cleaning",
+                "value": "Dry-cleaning"
+              },
+              {
+                "label": "Optical",
+                "value": "Optical"
+              },
+              {
+                "label": "Other health/hygiene",
+                "value": "Other health/hygiene"
+              }
+            ]
+          },
+          {
+            "id": "annual_total",
+            "label": "Annual Total",
+            "type": "number"
+          },
+          {
+            "id": "monthly_total",
+            "label": "Monthly Total",
+            "type": "derived",
+            "derived_formula": "annual_div_12",
+            "source_column_id": "annual_total"
+          },
+          {
+            "id": "source_url",
+            "label": "Source URL",
+            "type": "url"
+          }
+        ]
+      }
+    },
+    {
+      "id": "health_hygiene_monthly_derived",
+      "section_id": "living_expenses",
+      "label": "Health + Hygiene Monthly Total (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "health_hygiene_monthly_derived",
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
+    },
+    {
+      "id": "recreation_table_annual",
+      "section_id": "living_expenses",
+      "label": "Recreation + Entertainment Planner (Annual to Monthly)",
+      "type": "expense_table",
+      "role": "input",
+      "required": true,
+      "ui": {
+        "help_text": "Plan realistic non-work activity costs using annual totals.",
+        "default_rows": 6,
+        "table_columns": [
+          {
+            "id": "item",
+            "label": "Item",
+            "type": "select",
+            "options": [
+              {
+                "label": "Movies/Videos/Concerts",
+                "value": "Movies/Videos/Concerts"
+              },
+              {
+                "label": "Restaurants/Cafes",
+                "value": "Restaurants/Cafes"
+              },
+              {
+                "label": "Memberships",
+                "value": "Memberships"
+              },
+              {
+                "label": "Subscriptions",
+                "value": "Subscriptions"
+              },
+              {
+                "label": "Travel",
+                "value": "Travel"
+              },
+              {
+                "label": "Hobbies",
+                "value": "Hobbies"
+              },
+              {
+                "label": "Pets",
+                "value": "Pets"
+              },
+              {
+                "label": "Sports activities/equipment",
+                "value": "Sports activities/equipment"
+              },
+              {
+                "label": "Other recreation",
+                "value": "Other recreation"
+              }
+            ]
+          },
+          {
+            "id": "annual_total",
+            "label": "Annual Total",
+            "type": "number"
+          },
+          {
+            "id": "monthly_total",
+            "label": "Monthly Total",
+            "type": "derived",
+            "derived_formula": "annual_div_12",
+            "source_column_id": "annual_total"
+          },
+          {
+            "id": "source_url",
+            "label": "Source URL",
+            "type": "url"
+          }
+        ]
+      }
+    },
+    {
+      "id": "recreation_monthly_derived",
+      "section_id": "living_expenses",
+      "label": "Recreation Monthly Total (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "recreation_monthly_derived",
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
+    },
+    {
+      "id": "misc_table_monthly",
+      "section_id": "living_expenses",
+      "label": "Miscellaneous Planner (Monthly)",
+      "type": "expense_table",
+      "role": "input",
+      "required": false,
+      "ui": {
+        "help_text": "Track recurring miscellaneous monthly costs.",
+        "default_rows": 6,
+        "table_columns": [
+          {
+            "id": "item",
+            "label": "Item",
+            "type": "select",
+            "options": [
+              {
+                "label": "Smoking/Alcohol",
+                "value": "Smoking/Alcohol"
+              },
+              {
+                "label": "Education",
+                "value": "Education"
+              },
+              {
+                "label": "Books/Magazines",
+                "value": "Books/Magazines"
+              },
+              {
+                "label": "Household cleaning supplies",
+                "value": "Household cleaning supplies"
+              },
+              {
+                "label": "Tools/Repairs",
+                "value": "Tools/Repairs"
+              },
+              {
+                "label": "Other",
+                "value": "Other"
+              }
+            ]
+          },
+          {
+            "id": "monthly_total",
+            "label": "Monthly Total",
+            "type": "number"
+          },
+          {
+            "id": "source_url",
+            "label": "Source URL",
+            "type": "url"
+          }
+        ]
+      }
+    },
+    {
+      "id": "misc_monthly_derived",
+      "section_id": "living_expenses",
+      "label": "Miscellaneous Monthly Total (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "misc_monthly_derived",
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "household_maintenance_monthly",
@@ -559,28 +1253,13 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
-    },
-    {
-      "id": "health_hygiene_monthly",
-      "section_id": "living_expenses",
-      "label": "Health Care + Hygiene",
-      "type": "number",
-      "role": "input",
-      "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
-    },
-    {
-      "id": "recreation_monthly",
-      "section_id": "living_expenses",
-      "label": "Recreation + Entertainment",
-      "type": "number",
-      "role": "input",
-      "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "savings_monthly",
@@ -589,18 +1268,13 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
-    },
-    {
-      "id": "misc_monthly",
-      "section_id": "living_expenses",
-      "label": "Miscellaneous",
-      "type": "number",
-      "role": "input",
-      "required": false,
-      "validation": { "min": 0, "step": 0.01 },
-      "ui": { "prefix": "$" }
+      "validation": {
+        "min": 0,
+        "step": 0.01
+      },
+      "ui": {
+        "prefix": "$"
+      }
     },
     {
       "id": "essentials_total",
@@ -610,7 +1284,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "essentials_total",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "ref_values_alignment",
@@ -619,7 +1296,10 @@
       "type": "textarea",
       "role": "reflection",
       "required": true,
-      "validation": { "min_length": 40, "max_length": 1500 }
+      "validation": {
+        "min_length": 40,
+        "max_length": 1500
+      }
     },
     {
       "id": "ref_transport_decision",
@@ -628,7 +1308,10 @@
       "type": "textarea",
       "role": "reflection",
       "required": true,
-      "validation": { "min_length": 40, "max_length": 1500 }
+      "validation": {
+        "min_length": 40,
+        "max_length": 1500
+      }
     },
     {
       "id": "ref_budget_adjustments",
@@ -637,7 +1320,10 @@
       "type": "textarea",
       "role": "reflection",
       "required": true,
-      "validation": { "min_length": 40, "max_length": 1500 }
+      "validation": {
+        "min_length": 40,
+        "max_length": 1500
+      }
     },
     {
       "id": "total_monthly_expenses",
@@ -647,7 +1333,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "total_monthly_expenses",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "monthly_surplus",
@@ -657,7 +1346,10 @@
       "role": "derived",
       "required": false,
       "compute_key": "monthly_surplus",
-      "ui": { "prefix": "$", "read_only": true }
+      "ui": {
+        "prefix": "$",
+        "read_only": true
+      }
     },
     {
       "id": "housing_affordability_ratio",
@@ -667,7 +1359,9 @@
       "role": "derived",
       "required": false,
       "compute_key": "housing_affordability_ratio",
-      "ui": { "read_only": true }
+      "ui": {
+        "read_only": true
+      }
     }
   ],
   "evidence_requirements": [

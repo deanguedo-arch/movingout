@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.1.0",
-  "constants_version": "1.1.0",
+  "schema_version": "1.2.0",
+  "constants_version": "1.2.0",
   "dataset_date": "2026-02-20",
   "currency": "CAD",
   "income": {
@@ -81,18 +81,54 @@
       "baseline_term_months": 48,
       "baseline_apr_percent": 7,
       "points": [
-        { "principal": 2700, "monthly_payment": 65 },
-        { "principal": 3000, "monthly_payment": 72 },
-        { "principal": 4000, "monthly_payment": 96 },
-        { "principal": 5000, "monthly_payment": 120 },
-        { "principal": 7000, "monthly_payment": 168 },
-        { "principal": 8000, "monthly_payment": 192 },
-        { "principal": 10000, "monthly_payment": 240 },
-        { "principal": 12000, "monthly_payment": 287 },
-        { "principal": 15000, "monthly_payment": 359 },
-        { "principal": 18000, "monthly_payment": 431 },
-        { "principal": 20000, "monthly_payment": 479 },
-        { "principal": 25000, "monthly_payment": 599 }
+        {
+          "principal": 2700,
+          "monthly_payment": 65
+        },
+        {
+          "principal": 3000,
+          "monthly_payment": 72
+        },
+        {
+          "principal": 4000,
+          "monthly_payment": 96
+        },
+        {
+          "principal": 5000,
+          "monthly_payment": 120
+        },
+        {
+          "principal": 7000,
+          "monthly_payment": 168
+        },
+        {
+          "principal": 8000,
+          "monthly_payment": 192
+        },
+        {
+          "principal": 10000,
+          "monthly_payment": 240
+        },
+        {
+          "principal": 12000,
+          "monthly_payment": 287
+        },
+        {
+          "principal": 15000,
+          "monthly_payment": 359
+        },
+        {
+          "principal": 18000,
+          "monthly_payment": 431
+        },
+        {
+          "principal": 20000,
+          "monthly_payment": 479
+        },
+        {
+          "principal": 25000,
+          "monthly_payment": 599
+        }
       ]
     }
   },
@@ -105,16 +141,52 @@
       "Spaghetti",
       "Spaghetti sauce",
       "Potatoes",
+      "Eggs",
       "Milk",
       "Bread",
+      "Butter/Margarine",
+      "Orange Juice",
       "Chicken",
       "Lean hamburger",
+      "Pork chops",
+      "Sandwich meat",
       "Apples",
+      "Oranges",
       "Bananas",
-      "Frozen vegetables"
+      "Lettuce",
+      "Instant dinners",
+      "Frozen vegetables",
+      "Canned corn/peas",
+      "Solid white tuna",
+      "Cheese",
+      "Ice cream",
+      "Coffee/Tea",
+      "Toilet paper",
+      "Kleenex",
+      "Paper towel/napkins"
     ]
   },
   "teacher_mode": {
     "default_passcode": "teacher123"
+  },
+  "economic_snapshot": {
+    "minimum_wage_ab": {
+      "value": 15,
+      "description": "Alberta general minimum wage per hour.",
+      "source_url": "https://www.alberta.ca/minimum-wage",
+      "last_updated": "2026-02-20"
+    },
+    "gas_benchmark_ab": {
+      "value": 1.45,
+      "description": "Teacher-managed Alberta gasoline benchmark in $/L.",
+      "source_url": "https://www150.statcan.gc.ca/n1/en/catalogue/1810000101",
+      "last_updated": "2026-02-20"
+    },
+    "cpi_yoy_canada": {
+      "value": 2.1,
+      "description": "Teacher-managed Canada CPI year-over-year benchmark in percent.",
+      "source_url": "https://www150.statcan.gc.ca/n1/daily-quotidien/260217/dq260217a-eng.htm",
+      "last_updated": "2026-02-20"
+    }
   }
 }
