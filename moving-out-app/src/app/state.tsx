@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { removeEvidenceByType, upsertEvidenceForType } from "../evidence/evidenceService";
+import { buildSubmissionZip } from "../export/exportZip";
+import { restoreFromSubmissionZip } from "../export/importZip";
 import { appendEvent } from "../logs/eventLog";
+import { listEventLog } from "../logs/eventLog";
 import { applyPinnedChoice, createPinnedChoice, removePinnedChoice } from "../pinning/pinningService";
 import { computeBudget, computeReadinessFlags } from "../rules";
 import { getAssignmentSchema, getDefaultConstants } from "../schema";
@@ -36,6 +39,8 @@ type AppStateContextValue = {
   removeEvidence: (type: EvidenceType) => Promise<void>;
   pinCategory: (category: "housing" | "transportation") => Promise<void>;
   unpinCategory: (category: "housing" | "transportation") => Promise<void>;
+  exportSubmissionPackage: () => Promise<Blob>;
+  importSubmissionPackage: (zipBlob: Blob) => Promise<void>;
   recomputeNow: () => Promise<void>;
   reloadFromStorage: () => Promise<void>;
 };
@@ -342,6 +347,33 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [constants, evidence, persistSubmission, submission],
   );
 
+  const exportSubmissionPackage = useCallback(async (): Promise<Blob> => {
+    await appendEvent("EXPORT", {
+      submission_id: submission.id,
+      pinned_count: submission.pinned.length,
+    });
+    const eventLog = await listEventLog();
+    const bytes = await buildSubmissionZip({
+      submission,
+      schema,
+      constants,
+      evidenceItems: evidence,
+      evidenceFiles,
+      eventLog,
+    });
+    const zipBytes = new Uint8Array(bytes.byteLength);
+    zipBytes.set(bytes);
+    return new Blob([zipBytes], { type: "application/zip" });
+  }, [constants, evidence, evidenceFiles, submission]);
+
+  const importSubmissionPackage = useCallback(
+    async (zipBlob: Blob): Promise<void> => {
+      await restoreFromSubmissionZip(zipBlob);
+      await reloadFromStorage();
+    },
+    [reloadFromStorage],
+  );
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       loading,
@@ -356,6 +388,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       removeEvidence,
       pinCategory,
       unpinCategory,
+      exportSubmissionPackage,
+      importSubmissionPackage,
       recomputeNow,
       reloadFromStorage,
     }),
@@ -363,6 +397,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       constants,
       evidence,
       evidenceFiles,
+      exportSubmissionPackage,
+      importSubmissionPackage,
       loading,
       removeEvidence,
       pinCategory,

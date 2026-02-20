@@ -43,3 +43,18 @@ export async function clearEventLog(): Promise<void> {
   await tx.objectStore("meta").put(0, EVENT_SEQ_KEY);
   await tx.done;
 }
+
+export async function replaceEventLog(entries: EventLogEntry[]): Promise<void> {
+  const db = await openBudgetDb();
+  const sorted = [...entries].sort((a, b) => a.seq - b.seq);
+  const tx = db.transaction(["event_log", "meta"], "readwrite");
+  const eventStore = tx.objectStore("event_log");
+  const metaStore = tx.objectStore("meta");
+  await eventStore.clear();
+  for (const entry of sorted) {
+    await eventStore.put(entry);
+  }
+  const highestSeq = sorted.at(-1)?.seq ?? 0;
+  await metaStore.put(highestSeq, EVENT_SEQ_KEY);
+  await tx.done;
+}
