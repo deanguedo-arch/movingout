@@ -94,7 +94,15 @@ function FieldRenderer({ field, value, onInputChange }: FieldRendererProps) {
 
 export function SectionPage() {
   const { sectionId } = useParams();
-  const { schema, submission, setInputValue, setReflectionValue, recomputeNow } = useAppState();
+  const {
+    schema,
+    submission,
+    setInputValue,
+    setReflectionValue,
+    recomputeNow,
+    pinCategory,
+    unpinCategory,
+  } = useAppState();
   const section = useMemo(
     () => schema.sections.find((item) => item.id === sectionId),
     [schema.sections, sectionId],
@@ -113,6 +121,10 @@ export function SectionPage() {
   const sectionIndex = schema.sections.findIndex((item) => item.id === sectionId);
   const previousSection = schema.sections[sectionIndex - 1];
   const nextSection = schema.sections[sectionIndex + 1];
+  const pinConfig = schema.pinning.categories.find((category) => category.section_id === sectionId);
+  const existingPin = pinConfig
+    ? submission.pinned.find((item) => item.category === pinConfig.id)
+    : undefined;
 
   return (
     <section className="page">
@@ -162,6 +174,18 @@ export function SectionPage() {
         <button type="button" onClick={() => void recomputeNow()}>
           Calculate / Check Budget
         </button>
+        {pinConfig ? (
+          <>
+            <button type="button" onClick={() => void pinCategory(pinConfig.id)}>
+              {existingPin ? "Update Pin" : "Pin this option"}
+            </button>
+            {existingPin ? (
+              <button type="button" onClick={() => void unpinCategory(pinConfig.id)}>
+                Remove Pin
+              </button>
+            ) : null}
+          </>
+        ) : null}
         {previousSection ? <Link to={`/sections/${previousSection.id}`}>Previous</Link> : null}
         {nextSection ? <Link to={`/sections/${nextSection.id}`}>Next</Link> : null}
       </div>

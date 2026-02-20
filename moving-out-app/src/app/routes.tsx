@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./AppShell";
+import { ComparisonPage } from "../features/comparison/ComparisonPage";
 import { PlaceholderPage } from "../features/common/PlaceholderPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { EvidencePage } from "../features/evidence/EvidencePage";
@@ -17,15 +18,7 @@ export function AppRoutes() {
           <Route element={<SectionPage />} path="sections/:sectionId" />
           <Route element={<EvidencePage />} path="evidence" />
           <Route element={<ReadinessPage />} path="readiness" />
-          <Route
-            element={
-              <PlaceholderPage
-                title="Comparison Sheet"
-                message="Pinned choice comparison output will appear here in a later checkpoint."
-              />
-            }
-            path="comparison"
-          />
+          <Route element={<ComparisonPage />} path="comparison" />
           <Route
             element={
               <PlaceholderPage

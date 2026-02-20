@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { removeEvidenceByType, upsertEvidenceForType } from "../evidence/evidenceService";
 import { appendEvent } from "../logs/eventLog";
+import { applyPinnedChoice, createPinnedChoice, removePinnedChoice } from "../pinning/pinningService";
 import { computeBudget, computeReadinessFlags } from "../rules";
 import { getAssignmentSchema, getDefaultConstants } from "../schema";
 import type {
@@ -33,6 +34,8 @@ type AppStateContextValue = {
   setReflectionValue: (fieldId: string, value: string) => Promise<void>;
   saveEvidence: (args: { type: EvidenceType; url?: string; files?: File[] }) => Promise<void>;
   removeEvidence: (type: EvidenceType) => Promise<void>;
+  pinCategory: (category: "housing" | "transportation") => Promise<void>;
+  unpinCategory: (category: "housing" | "transportation") => Promise<void>;
   recomputeNow: () => Promise<void>;
   reloadFromStorage: () => Promise<void>;
 };
@@ -295,6 +298,50 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [constants, persistSubmission, submission],
   );
 
+  const pinCategory = useCallback(
+    async (category: "housing" | "transportation") => {
+      const pinnedChoice = createPinnedChoice({
+        category,
+        schema,
+        submission,
+      });
+      const withPinned = applyPinnedChoice({
+        submission,
+        pinnedChoice,
+      });
+      const recomputed = recomputeSubmission({
+        submission: withPinned,
+        schema,
+        constants,
+        evidence,
+      });
+      await appendEvent("PIN_ADD", {
+        category,
+        pin_id: pinnedChoice.id,
+      });
+      await persistSubmission(recomputed);
+    },
+    [constants, evidence, persistSubmission, submission],
+  );
+
+  const unpinCategory = useCallback(
+    async (category: "housing" | "transportation") => {
+      const unpinned = removePinnedChoice({
+        submission,
+        category,
+      });
+      const recomputed = recomputeSubmission({
+        submission: unpinned,
+        schema,
+        constants,
+        evidence,
+      });
+      await appendEvent("PIN_REMOVE", { category });
+      await persistSubmission(recomputed);
+    },
+    [constants, evidence, persistSubmission, submission],
+  );
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       loading,
@@ -307,6 +354,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReflectionValue,
       saveEvidence,
       removeEvidence,
+      pinCategory,
+      unpinCategory,
       recomputeNow,
       reloadFromStorage,
     }),
@@ -316,12 +365,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       evidenceFiles,
       loading,
       removeEvidence,
+      pinCategory,
       recomputeNow,
       reloadFromStorage,
       saveEvidence,
       setInputValue,
       setReflectionValue,
       submission,
+      unpinCategory,
     ],
   );
 
