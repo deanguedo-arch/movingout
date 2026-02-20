@@ -67,9 +67,14 @@ export function applyPinnedChoice(args: {
   pinnedChoice: PinnedChoice;
 }): Submission {
   const { submission, pinnedChoice } = args;
+  const sameCategory = submission.pinned.filter((item) => item.category === pinnedChoice.category);
+  const filtered = sameCategory.filter(
+    (item) => item.label.trim().toLowerCase() !== pinnedChoice.label.trim().toLowerCase(),
+  );
+  const nextCategory = [...filtered, pinnedChoice].slice(-4);
   const nextPinned = [
     ...submission.pinned.filter((item) => item.category !== pinnedChoice.category),
-    pinnedChoice,
+    ...nextCategory,
   ];
   return {
     ...submission,

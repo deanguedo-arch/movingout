@@ -1,4 +1,4 @@
-import type { Constants, DerivedTotals, InputMap } from "../schema";
+import type { Constants, DerivedTotals, FoodTableRow, InputMap } from "../schema";
 import { fromCents, roundCurrency, sumCents, toCents } from "./currency";
 
 function getNumberInput(inputs: InputMap, fieldId: string): number {
@@ -15,6 +15,11 @@ function getNumberInput(inputs: InputMap, fieldId: string): number {
   return 0;
 }
 
+function getStringInput(inputs: InputMap, fieldId: string): string {
+  const value = inputs[fieldId];
+  return typeof value === "string" ? value : "";
+}
+
 function getMode(inputs: InputMap): "car" | "truck" | "transit" {
   const raw = inputs.transport_mode;
   if (raw === "truck") {
@@ -26,7 +31,24 @@ function getMode(inputs: InputMap): "car" | "truck" | "transit" {
   return "car";
 }
 
-function interpolateLoanPayment(points: Constants["transportation"]["loan_payment_table"]["points"], principal: number): number {
+function getIncomeMode(
+  inputs: InputMap,
+  constants: Constants,
+): "net_paycheque" | "hourly_estimate" {
+  const raw = getStringInput(inputs, "income_mode");
+  if (raw === "hourly_estimate") {
+    return "hourly_estimate";
+  }
+  if (raw === "net_paycheque") {
+    return "net_paycheque";
+  }
+  return constants.income.default_mode;
+}
+
+function interpolateLoanPayment(
+  points: Constants["transportation"]["loan_payment_table"]["points"],
+  principal: number,
+): number {
   if (principal <= 0 || points.length === 0) {
     return 0;
   }
@@ -82,34 +104,135 @@ export function computeVehicleLoanPayment(args: {
 
   const table = constants.transportation.loan_payment_table;
   const baselinePayment = interpolateLoanPayment(table.points, financedPrincipal);
-
   const baselineFactor = amortizedPaymentPerDollar(table.baseline_term_months, table.baseline_apr_percent);
   const targetFactor = amortizedPaymentPerDollar(termMonths, aprPercent);
   if (baselineFactor === 0 || targetFactor === 0) {
     return roundCurrency(baselinePayment);
   }
-
   return roundCurrency((baselinePayment * targetFactor) / baselineFactor);
+}
+
+function calculateDeductionBreakdown(args: {
+  gross: number;
+  net: number;
+  constants: Constants;
+}): DerivedTotals["deductions"] {
+  const { gross, net, constants } = args;
+  const rates = constants.deductions;
+  const totalRate =
+    rates.income_tax_rate.value +
+    rates.cpp_rate.value +
+    rates.ei_rate.value +
+    rates.union_dues_rate.value;
+
+  const deductionTotal = roundCurrency(Math.max(gross - net, 0));
+  if (deductionTotal <= 0 || totalRate <= 0) {
+    return {
+      income_tax: 0,
+      cpp: 0,
+      ei: 0,
+      union_dues: 0,
+      total: 0,
+    };
+  }
+
+  const incomeTax = roundCurrency((deductionTotal * rates.income_tax_rate.value) / totalRate);
+  const cpp = roundCurrency((deductionTotal * rates.cpp_rate.value) / totalRate);
+  const ei = roundCurrency((deductionTotal * rates.ei_rate.value) / totalRate);
+  const unionDues = roundCurrency(
+    deductionTotal - incomeTax - cpp - ei,
+  );
+
+  return {
+    income_tax: incomeTax,
+    cpp,
+    ei,
+    union_dues: unionDues,
+    total: roundCurrency(incomeTax + cpp + ei + unionDues),
+  };
 }
 
 export function computeGrossMonthlyIncome(args: { inputs: InputMap; constants: Constants }): number {
   const { inputs, constants } = args;
+  const mode = getIncomeMode(inputs, constants);
+  const otherIncome = getNumberInput(inputs, "other_monthly_income");
+
+  if (mode === "hourly_estimate") {
+    const wage = getNumberInput(inputs, "hourly_wage");
+    const hours = getNumberInput(inputs, "hours_per_week");
+    return roundCurrency(wage * hours * constants.transportation.weeks_per_month.value + otherIncome);
+  }
+
   const wage = getNumberInput(inputs, "hourly_wage");
   const hours = getNumberInput(inputs, "hours_per_week");
-  const other = getNumberInput(inputs, "other_monthly_income");
-  const weeksPerMonth = constants.transportation.weeks_per_month.value;
+  if (wage > 0 && hours > 0) {
+    return roundCurrency(wage * hours * constants.transportation.weeks_per_month.value + otherIncome);
+  }
 
-  return roundCurrency(wage * hours * weeksPerMonth + other);
+  const netPerCheque = getNumberInput(inputs, "net_pay_per_cheque");
+  const chequesPerMonth = Math.max(getNumberInput(inputs, "paycheques_per_month"), 1);
+  const netEmployment = netPerCheque * chequesPerMonth;
+  const estimatedRate =
+    constants.deductions.income_tax_rate.value +
+    constants.deductions.cpp_rate.value +
+    constants.deductions.ei_rate.value +
+    constants.deductions.union_dues_rate.value;
+  if (estimatedRate <= 0 || estimatedRate >= 1) {
+    return roundCurrency(netEmployment + otherIncome);
+  }
+  return roundCurrency(netEmployment / (1 - estimatedRate) + otherIncome);
 }
 
-export function computeMonthlyHousingTotals(inputs: InputMap): DerivedTotals["housing"] {
+export function parseFoodTableRows(args: {
+  inputs: InputMap;
+  constants: Constants;
+}): FoodTableRow[] {
+  const { inputs, constants } = args;
+  const raw = inputs.food_table_weekly;
+  const fallback = constants.food.default_items.map((item, index) => ({
+    id: `default-${index + 1}`,
+    item,
+    planned_purchase: "",
+    estimated_cost: 0,
+    source_url: "",
+  }));
+
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    return fallback;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as FoodTableRow[];
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return fallback;
+    }
+    return parsed.map((row, index) => ({
+      id: typeof row.id === "string" && row.id.length > 0 ? row.id : `row-${index + 1}`,
+      item: typeof row.item === "string" ? row.item : "",
+      planned_purchase: typeof row.planned_purchase === "string" ? row.planned_purchase : "",
+      estimated_cost:
+        typeof row.estimated_cost === "number" && Number.isFinite(row.estimated_cost)
+          ? row.estimated_cost
+          : 0,
+      source_url: typeof row.source_url === "string" ? row.source_url : "",
+    }));
+  } catch {
+    return fallback;
+  }
+}
+
+export function computeMonthlyHousingTotals(args: {
+  inputs: InputMap;
+  netMonthlyIncome: number;
+}): DerivedTotals["housing"] {
+  const { inputs, netMonthlyIncome } = args;
   const rent = getNumberInput(inputs, "rent_monthly");
   const utilities = getNumberInput(inputs, "utilities_monthly");
   const renterInsurance = getNumberInput(inputs, "renter_insurance_monthly");
   const internetPhone = getNumberInput(inputs, "internet_phone_monthly");
   const other = getNumberInput(inputs, "other_housing_monthly");
-
   const total = fromCents(sumCents([rent, utilities, renterInsurance, internetPhone, other]));
+  const affordabilityRatio = netMonthlyIncome > 0 ? roundCurrency((rent + utilities) / netMonthlyIncome) : 0;
 
   return {
     rent: roundCurrency(rent),
@@ -118,6 +241,7 @@ export function computeMonthlyHousingTotals(inputs: InputMap): DerivedTotals["ho
     internet_phone: roundCurrency(internetPhone),
     other: roundCurrency(other),
     total,
+    affordability_ratio: affordabilityRatio,
   };
 }
 
@@ -146,16 +270,29 @@ export function computeTransportation(args: { inputs: InputMap; constants: Const
           constants,
         });
 
-  const kmPerWeek = getNumberInput(inputs, "km_per_week");
-  const kmPerMonth = kmPerWeek * constants.transportation.weeks_per_month.value;
-  const costPerKm = constants.transportation.operating_cost_per_km[mode].value;
-  const operatingCost = mode === "transit" ? 0 : roundCurrency(kmPerMonth * costPerKm);
+  const kmPerMonth = getNumberInput(inputs, "km_per_month");
+  const fuelEconomy = getNumberInput(inputs, "fuel_economy_l_per_100km");
+  const gasPrice = getNumberInput(inputs, "gas_price_per_litre");
+  const maintenance = getNumberInput(inputs, "maintenance_monthly");
+  const fuelCost =
+    mode === "transit"
+      ? 0
+      : roundCurrency((kmPerMonth * fuelEconomy * gasPrice) / 100);
+  const operatingCost = mode === "transit" ? 0 : roundCurrency(fuelCost + maintenance);
 
-  const transitPass = getNumberInput(inputs, "transit_monthly_pass");
+  const enteredTransitPass = getNumberInput(inputs, "transit_monthly_pass");
+  const transitPass =
+    mode === "transit"
+      ? enteredTransitPass > 0
+        ? enteredTransitPass
+        : constants.transportation.transit_monthly_pass_default.value
+      : 0;
   const insurance = getNumberInput(inputs, "transport_insurance_monthly");
   const parking = getNumberInput(inputs, "parking_monthly");
 
-  const total = fromCents(sumCents([loanPayment, operatingCost, transitPass, insurance, parking]));
+  const total = fromCents(
+    sumCents([loanPayment, operatingCost, transitPass, insurance, parking]),
+  );
 
   return {
     mode,
@@ -165,64 +302,119 @@ export function computeTransportation(args: { inputs: InputMap; constants: Const
     term_months: roundCurrency(mode === "transit" ? 0 : termMonths),
     apr_percent: roundCurrency(mode === "transit" ? 0 : aprPercent),
     loan_payment: roundCurrency(loanPayment),
+    fuel_economy_l_per_100km: roundCurrency(mode === "transit" ? 0 : fuelEconomy),
+    gas_price_per_litre: roundCurrency(mode === "transit" ? 0 : gasPrice),
+    km_per_month: roundCurrency(mode === "transit" ? 0 : kmPerMonth),
+    fuel_cost: roundCurrency(fuelCost),
+    maintenance: roundCurrency(mode === "transit" ? 0 : maintenance),
     operating_cost: roundCurrency(operatingCost),
-    transit_pass: roundCurrency(transitPass),
     insurance: roundCurrency(insurance),
     parking: roundCurrency(parking),
+    transit_pass: roundCurrency(transitPass),
     total,
   };
 }
 
-function computeLivingExpenses(inputs: InputMap): DerivedTotals["living_expenses"] {
-  const groceries = getNumberInput(inputs, "groceries_monthly");
-  const healthMedical = getNumberInput(inputs, "health_medical_monthly");
-  const personal = getNumberInput(inputs, "personal_monthly");
-  const entertainment = getNumberInput(inputs, "entertainment_monthly");
+function computeLivingExpenses(args: {
+  inputs: InputMap;
+  constants: Constants;
+}): DerivedTotals["living_expenses"] {
+  const { inputs, constants } = args;
+  const foodRows = parseFoodTableRows({ inputs, constants });
+  const groceriesWeekly = roundCurrency(
+    foodRows.reduce((sum, row) => sum + row.estimated_cost, 0),
+  );
+  const groceriesMonthly = roundCurrency(
+    groceriesWeekly * constants.food.weeks_per_month.value,
+  );
+  const clothing = getNumberInput(inputs, "clothing_monthly");
+  const householdMaintenance = getNumberInput(inputs, "household_maintenance_monthly");
+  const healthHygiene = getNumberInput(inputs, "health_hygiene_monthly");
+  const recreation = getNumberInput(inputs, "recreation_monthly");
   const savings = getNumberInput(inputs, "savings_monthly");
-  const other = getNumberInput(inputs, "other_expenses_monthly");
+  const misc = getNumberInput(inputs, "misc_monthly");
 
-  const total = fromCents(sumCents([groceries, healthMedical, personal, entertainment, savings, other]));
+  const total = fromCents(
+    sumCents([
+      groceriesMonthly,
+      clothing,
+      householdMaintenance,
+      healthHygiene,
+      recreation,
+      savings,
+      misc,
+    ]),
+  );
 
   return {
-    groceries: roundCurrency(groceries),
-    health_medical: roundCurrency(healthMedical),
-    personal: roundCurrency(personal),
-    entertainment: roundCurrency(entertainment),
+    groceries_weekly: groceriesWeekly,
+    groceries: groceriesMonthly,
+    clothing: roundCurrency(clothing),
+    household_maintenance: roundCurrency(householdMaintenance),
+    health_hygiene: roundCurrency(healthHygiene),
+    recreation: roundCurrency(recreation),
     savings: roundCurrency(savings),
-    other: roundCurrency(other),
+    misc: roundCurrency(misc),
     total,
   };
 }
 
 export function computeBudget(args: { inputs: InputMap; constants: Constants }): DerivedTotals {
   const { inputs, constants } = args;
+  const incomeMode = getIncomeMode(inputs, constants);
   const gross = computeGrossMonthlyIncome({ inputs, constants });
   const grossCents = toCents(gross);
 
-  const incomeTax = fromCents(toCents((grossCents / 100) * constants.deductions.income_tax_rate.value));
-  const cpp = fromCents(toCents((grossCents / 100) * constants.deductions.cpp_rate.value));
-  const ei = fromCents(toCents((grossCents / 100) * constants.deductions.ei_rate.value));
-  const unionDues = fromCents(toCents((grossCents / 100) * constants.deductions.union_dues_rate.value));
-  const totalDeductions = fromCents(toCents(incomeTax + cpp + ei + unionDues));
-  const net = fromCents(grossCents - toCents(totalDeductions));
+  let net = gross;
+  let deductions = {
+    income_tax: 0,
+    cpp: 0,
+    ei: 0,
+    union_dues: 0,
+    total: 0,
+  };
 
-  const housing = computeMonthlyHousingTotals(inputs);
-  const transportation = computeTransportation({ inputs, constants });
-  const livingExpenses = computeLivingExpenses(inputs);
-
-  const totalExpenses = fromCents(sumCents([housing.total, transportation.total, livingExpenses.total]));
-  const monthlySurplus = fromCents(toCents(net - totalExpenses));
-
-  return {
-    gross_monthly_income: gross,
-    net_monthly_income: net,
-    deductions: {
+  if (incomeMode === "net_paycheque") {
+    const cheques = Math.max(getNumberInput(inputs, "paycheques_per_month"), 1);
+    const netPerCheque = getNumberInput(inputs, "net_pay_per_cheque");
+    const other = getNumberInput(inputs, "other_monthly_income");
+    net = roundCurrency(netPerCheque * cheques + other);
+    deductions = calculateDeductionBreakdown({
+      gross,
+      net,
+      constants,
+    });
+  } else {
+    const incomeTax = fromCents(toCents((grossCents / 100) * constants.deductions.income_tax_rate.value));
+    const cpp = fromCents(toCents((grossCents / 100) * constants.deductions.cpp_rate.value));
+    const ei = fromCents(toCents((grossCents / 100) * constants.deductions.ei_rate.value));
+    const unionDues = fromCents(toCents((grossCents / 100) * constants.deductions.union_dues_rate.value));
+    const totalDeductions = fromCents(toCents(incomeTax + cpp + ei + unionDues));
+    net = fromCents(grossCents - toCents(totalDeductions));
+    deductions = {
       income_tax: incomeTax,
       cpp,
       ei,
       union_dues: unionDues,
       total: totalDeductions,
-    },
+    };
+  }
+
+  const housing = computeMonthlyHousingTotals({
+    inputs,
+    netMonthlyIncome: net,
+  });
+  const transportation = computeTransportation({ inputs, constants });
+  const livingExpenses = computeLivingExpenses({ inputs, constants });
+  const totalExpenses = fromCents(
+    sumCents([housing.total, transportation.total, livingExpenses.total]),
+  );
+  const monthlySurplus = fromCents(toCents(net - totalExpenses));
+
+  return {
+    gross_monthly_income: roundCurrency(gross),
+    net_monthly_income: roundCurrency(net),
+    deductions,
     housing,
     transportation,
     living_expenses: livingExpenses,

@@ -1,49 +1,49 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "title": "Moving Out Project / Life After High School Budgeting",
-  "description": "Schema-driven assignment definition for student budgeting workflow.",
+  "description": "Research-driven budgeting simulation for CALM moving out assignment.",
   "sections": [
     {
       "id": "student_profile",
-      "title": "Student Profile",
-      "description": "Basic assignment context information.",
-      "points": 5
+      "title": "Profile + Plan",
+      "description": "Your personal plan and living context.",
+      "points": 10
     },
     {
       "id": "income",
       "title": "Income",
-      "description": "Estimate your monthly gross and net income.",
+      "description": "Use real-world pay information and estimate monthly take-home income.",
       "points": 20
     },
     {
       "id": "housing",
       "title": "Housing",
-      "description": "Choose where you will live and estimate housing costs.",
-      "points": 20
+      "description": "Research rental options and complete monthly housing cost.",
+      "points": 25
     },
     {
       "id": "transportation",
       "title": "Transportation",
-      "description": "Choose transportation and estimate vehicle/transit costs.",
+      "description": "Compare vehicle and transit costs using current assumptions.",
       "points": 20
     },
     {
       "id": "living_expenses",
-      "title": "Living Expenses",
-      "description": "Estimate everyday monthly costs.",
-      "points": 20
+      "title": "Essentials",
+      "description": "Food, clothing, hygiene, recreation, savings, and misc spending.",
+      "points": 35
     },
     {
       "id": "reflections",
       "title": "Reflections",
-      "description": "Explain choices and tradeoffs.",
-      "points": 15
+      "description": "Explain your decisions and tradeoffs.",
+      "points": 20
     },
     {
       "id": "summary",
-      "title": "Budget Summary",
-      "description": "Derived totals from all sections.",
-      "points": 0
+      "title": "Summary",
+      "description": "Final monthly totals and affordability indicators.",
+      "points": 30
     }
   ],
   "fields": [
@@ -54,9 +54,7 @@
       "type": "text",
       "role": "input",
       "required": false,
-      "ui": {
-        "placeholder": "Your full name"
-      }
+      "ui": { "placeholder": "Your full name" }
     },
     {
       "id": "class_name",
@@ -65,49 +63,106 @@
       "type": "text",
       "role": "input",
       "required": false,
+      "ui": { "placeholder": "e.g., CALM 20" }
+    },
+    {
+      "id": "roommate_name",
+      "section_id": "student_profile",
+      "label": "Roommate Name (if any)",
+      "type": "text",
+      "role": "input",
+      "required": false
+    },
+    {
+      "id": "move_out_age",
+      "section_id": "student_profile",
+      "label": "Planned Move-Out Age",
+      "type": "number",
+      "role": "input",
+      "required": true,
+      "validation": { "min": 17, "max": 35, "step": 1 }
+    },
+    {
+      "id": "career_path",
+      "section_id": "student_profile",
+      "label": "Planned Education / Career Path",
+      "type": "text",
+      "role": "input",
+      "required": true
+    },
+    {
+      "id": "home_city",
+      "section_id": "student_profile",
+      "label": "Planned City/Town",
+      "type": "text",
+      "role": "input",
+      "required": true
+    },
+    {
+      "id": "income_mode",
+      "section_id": "income",
+      "label": "Income Mode",
+      "type": "select",
+      "role": "input",
+      "required": true,
+      "options": [
+        { "label": "A) Enter net pay per paycheque (recommended)", "value": "net_paycheque" },
+        { "label": "B) Estimate from hourly wage + deductions", "value": "hourly_estimate" }
+      ]
+    },
+    {
+      "id": "net_pay_per_cheque",
+      "section_id": "income",
+      "label": "Net Pay Per Paycheque",
+      "type": "number",
+      "role": "input",
+      "required": false,
+      "validation": { "min": 0, "step": 0.01 },
       "ui": {
-        "placeholder": "e.g., Career and Life Management"
+        "prefix": "$",
+        "help_text": "Use your sample paystub or CRA payroll calculator result."
       }
     },
     {
-      "id": "teacher_name",
-      "section_id": "student_profile",
-      "label": "Teacher",
+      "id": "paycheques_per_month",
+      "section_id": "income",
+      "label": "Paycheques Per Month",
+      "type": "number",
+      "role": "input",
+      "required": true,
+      "validation": { "min": 1, "max": 8, "step": 1 }
+    },
+    {
+      "id": "net_pay_source_url",
+      "section_id": "income",
+      "label": "Net Pay Source URL",
       "type": "text",
       "role": "input",
       "required": false,
       "ui": {
-        "placeholder": "Teacher name"
+        "placeholder": "https://...",
+        "help_text": "Paste CRA PDOC result or other source.",
+        "source_for_field_id": "net_pay_per_cheque"
       }
     },
     {
       "id": "hourly_wage",
       "section_id": "income",
-      "label": "Hourly Wage",
+      "label": "Hourly Wage (Estimator Mode)",
       "type": "number",
       "role": "input",
-      "required": true,
-      "validation": {
-        "min": 0,
-        "max": 200,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "required": false,
+      "validation": { "min": 0, "max": 200, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "hours_per_week",
       "section_id": "income",
-      "label": "Hours Worked Per Week",
+      "label": "Hours Worked Per Week (Estimator Mode)",
       "type": "number",
       "role": "input",
-      "required": true,
-      "validation": {
-        "min": 0,
-        "max": 80,
-        "step": 0.1
-      }
+      "required": false,
+      "validation": { "min": 0, "max": 80, "step": 0.1 }
     },
     {
       "id": "other_monthly_income",
@@ -116,14 +171,8 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$",
-        "help_text": "Scholarships, side work, support, etc."
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "gross_monthly_income",
@@ -133,10 +182,7 @@
       "role": "derived",
       "required": false,
       "compute_key": "gross_monthly_income",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "net_monthly_income",
@@ -146,21 +192,28 @@
       "role": "derived",
       "required": false,
       "compute_key": "net_monthly_income",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
+    },
+    {
+      "id": "roommate_choice",
+      "section_id": "housing",
+      "label": "Roommate Decision",
+      "type": "select",
+      "role": "input",
+      "required": true,
+      "options": [
+        { "label": "Live on my own", "value": "alone" },
+        { "label": "Have one roommate", "value": "roommate" }
+      ]
     },
     {
       "id": "housing_option_label",
       "section_id": "housing",
-      "label": "Housing Option",
+      "label": "Chosen Rental Option",
       "type": "text",
       "role": "input",
       "required": true,
-      "ui": {
-        "placeholder": "e.g., Basement suite near school"
-      }
+      "ui": { "placeholder": "e.g., 2-bedroom basement suite" }
     },
     {
       "id": "rent_monthly",
@@ -169,43 +222,52 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "rent_source_url",
+      "section_id": "housing",
+      "label": "Rent Source URL",
+      "type": "text",
+      "role": "input",
+      "required": false,
       "ui": {
-        "prefix": "$"
+        "placeholder": "https://...",
+        "source_for_field_id": "rent_monthly"
       }
     },
     {
       "id": "utilities_monthly",
       "section_id": "housing",
-      "label": "Monthly Utilities",
+      "label": "Utilities (Water/Gas/Electricity)",
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "utilities_source_url",
+      "section_id": "housing",
+      "label": "Utilities Source URL",
+      "type": "text",
+      "role": "input",
+      "required": false,
       "ui": {
-        "prefix": "$"
+        "placeholder": "https://...",
+        "source_for_field_id": "utilities_monthly"
       }
     },
     {
       "id": "renter_insurance_monthly",
       "section_id": "housing",
-      "label": "Renter Insurance",
+      "label": "Tenant Insurance",
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "internet_phone_monthly",
@@ -214,13 +276,8 @@
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "other_housing_monthly",
@@ -229,37 +286,37 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "moving_in_one_time_cost",
+      "section_id": "housing",
+      "label": "One-Time Moving-In Cost (Not in Monthly Total)",
+      "type": "number",
+      "role": "input",
+      "required": false,
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "housing_monthly_total",
       "section_id": "housing",
-      "label": "Housing Total (Derived)",
+      "label": "Housing Monthly Total (Derived)",
       "type": "number",
       "role": "derived",
       "required": false,
       "compute_key": "housing_monthly_total",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "transport_option_label",
       "section_id": "transportation",
-      "label": "Transportation Option",
+      "label": "Chosen Transportation Option",
       "type": "text",
       "role": "input",
       "required": true,
-      "ui": {
-        "placeholder": "e.g., Used compact car"
-      }
+      "ui": { "placeholder": "e.g., 2017 compact car / monthly ARC" }
     },
     {
       "id": "transport_mode",
@@ -269,18 +326,9 @@
       "role": "input",
       "required": true,
       "options": [
-        {
-          "label": "Car",
-          "value": "car"
-        },
-        {
-          "label": "Truck",
-          "value": "truck"
-        },
-        {
-          "label": "Transit / No Vehicle",
-          "value": "transit"
-        }
+        { "label": "Car", "value": "car" },
+        { "label": "Truck/SUV", "value": "truck" },
+        { "label": "Transit", "value": "transit" }
       ]
     },
     {
@@ -289,13 +337,20 @@
       "label": "Vehicle Price",
       "type": "number",
       "role": "input",
-      "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
+      "required": false,
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "vehicle_price_source_url",
+      "section_id": "transportation",
+      "label": "Vehicle Price Source URL",
+      "type": "text",
+      "role": "input",
+      "required": false,
       "ui": {
-        "prefix": "$"
+        "placeholder": "https://...",
+        "source_for_field_id": "vehicle_price"
       }
     },
     {
@@ -305,14 +360,8 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$",
-        "help_text": "Leave empty to use teacher default percentage."
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "vehicle_term_months",
@@ -321,11 +370,7 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 12,
-        "max": 96,
-        "step": 1
-      }
+      "validation": { "min": 12, "max": 96, "step": 1 }
     },
     {
       "id": "vehicle_apr_percent",
@@ -334,23 +379,45 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "max": 30,
-        "step": 0.01
-      }
+      "validation": { "min": 0, "max": 30, "step": 0.01 }
     },
     {
-      "id": "km_per_week",
+      "id": "km_per_month",
       "section_id": "transportation",
-      "label": "Kilometers Driven Per Week",
+      "label": "Kilometres Driven Per Month",
       "type": "number",
       "role": "input",
-      "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.1
-      }
+      "required": false,
+      "validation": { "min": 0, "step": 1 }
+    },
+    {
+      "id": "fuel_economy_l_per_100km",
+      "section_id": "transportation",
+      "label": "Fuel Economy (L/100km)",
+      "type": "number",
+      "role": "input",
+      "required": false,
+      "validation": { "min": 1, "max": 40, "step": 0.1 }
+    },
+    {
+      "id": "gas_price_per_litre",
+      "section_id": "transportation",
+      "label": "Gas Price ($/L)",
+      "type": "number",
+      "role": "input",
+      "required": false,
+      "validation": { "min": 0, "step": 0.001 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "maintenance_monthly",
+      "section_id": "transportation",
+      "label": "Maintenance + Tires Placeholder",
+      "type": "number",
+      "role": "input",
+      "required": false,
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "transit_monthly_pass",
@@ -359,12 +426,22 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
+      "validation": { "min": 0, "step": 0.01 },
       "ui": {
-        "prefix": "$"
+        "prefix": "$",
+        "help_text": "Leave blank to use cached city fare snapshot."
+      }
+    },
+    {
+      "id": "transit_source_url",
+      "section_id": "transportation",
+      "label": "Transit Fare Source URL",
+      "type": "text",
+      "role": "input",
+      "required": false,
+      "ui": {
+        "placeholder": "https://...",
+        "source_for_field_id": "transit_monthly_pass"
       }
     },
     {
@@ -374,13 +451,8 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "parking_monthly",
@@ -389,13 +461,8 @@
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "transport_loan_payment_monthly",
@@ -405,23 +472,27 @@
       "role": "derived",
       "required": false,
       "compute_key": "transport_loan_payment_monthly",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
+    },
+    {
+      "id": "transport_fuel_monthly",
+      "section_id": "transportation",
+      "label": "Estimated Fuel Cost (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "transport_fuel_monthly",
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "transport_operating_monthly",
       "section_id": "transportation",
-      "label": "Operating Cost (Derived)",
+      "label": "Operating Cost (Fuel + Maintenance, Derived)",
       "type": "number",
       "role": "derived",
       "required": false,
       "compute_key": "transport_operating_monthly",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "transport_monthly_total",
@@ -431,136 +502,142 @@
       "role": "derived",
       "required": false,
       "compute_key": "transport_monthly_total",
+      "ui": { "prefix": "$", "read_only": true }
+    },
+    {
+      "id": "food_table_weekly",
+      "section_id": "living_expenses",
+      "label": "Food + Household Weekly Planner",
+      "type": "food_table",
+      "role": "input",
+      "required": true,
       "ui": {
-        "prefix": "$",
-        "read_only": true
+        "help_text": "Item, planned purchase, estimated cost, and source.",
+        "default_rows": 10,
+        "table_columns": [
+          { "id": "item", "label": "Item", "type": "text" },
+          { "id": "planned_purchase", "label": "Planned Purchase", "type": "text" },
+          { "id": "estimated_cost", "label": "Estimated Cost", "type": "number" },
+          { "id": "source_url", "label": "Source URL", "type": "url" }
+        ]
       }
+    },
+    {
+      "id": "groceries_weekly_total",
+      "section_id": "living_expenses",
+      "label": "Food Weekly Total (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "groceries_weekly_total",
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "groceries_monthly",
       "section_id": "living_expenses",
-      "label": "Groceries",
+      "label": "Food Monthly Total (Derived)",
       "type": "number",
-      "role": "input",
-      "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "role": "derived",
+      "required": false,
+      "compute_key": "groceries_monthly",
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
-      "id": "health_medical_monthly",
+      "id": "clothing_monthly",
       "section_id": "living_expenses",
-      "label": "Health / Medical",
+      "label": "Clothing",
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
-      "id": "personal_monthly",
+      "id": "household_maintenance_monthly",
       "section_id": "living_expenses",
-      "label": "Personal / Clothing",
+      "label": "Household Maintenance + Furnishings",
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
-      "id": "entertainment_monthly",
+      "id": "health_hygiene_monthly",
       "section_id": "living_expenses",
-      "label": "Entertainment",
+      "label": "Health Care + Hygiene",
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "recreation_monthly",
+      "section_id": "living_expenses",
+      "label": "Recreation + Entertainment",
+      "type": "number",
+      "role": "input",
+      "required": true,
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
       "id": "savings_monthly",
       "section_id": "living_expenses",
-      "label": "Savings Contribution",
+      "label": "Savings",
       "type": "number",
       "role": "input",
       "required": true,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
     },
     {
-      "id": "other_expenses_monthly",
+      "id": "misc_monthly",
       "section_id": "living_expenses",
-      "label": "Other Expenses",
+      "label": "Miscellaneous",
       "type": "number",
       "role": "input",
       "required": false,
-      "validation": {
-        "min": 0,
-        "step": 0.01
-      },
-      "ui": {
-        "prefix": "$"
-      }
+      "validation": { "min": 0, "step": 0.01 },
+      "ui": { "prefix": "$" }
+    },
+    {
+      "id": "essentials_total",
+      "section_id": "living_expenses",
+      "label": "Essentials Total (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "essentials_total",
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "ref_values_alignment",
       "section_id": "reflections",
-      "label": "How do your choices reflect your values?",
+      "label": "How does your budget reflect your personal values?",
       "type": "textarea",
       "role": "reflection",
       "required": true,
-      "validation": {
-        "min_length": 40,
-        "max_length": 1500
-      }
+      "validation": { "min_length": 40, "max_length": 1500 }
+    },
+    {
+      "id": "ref_transport_decision",
+      "section_id": "reflections",
+      "label": "Why did you choose this transportation method?",
+      "type": "textarea",
+      "role": "reflection",
+      "required": true,
+      "validation": { "min_length": 40, "max_length": 1500 }
     },
     {
       "id": "ref_budget_adjustments",
       "section_id": "reflections",
-      "label": "If your budget is tight, what would you change first?",
+      "label": "If your budget does not balance, what will you change first?",
       "type": "textarea",
       "role": "reflection",
       "required": true,
-      "validation": {
-        "min_length": 40,
-        "max_length": 1500
-      }
-    },
-    {
-      "id": "ref_confidence",
-      "section_id": "reflections",
-      "label": "How confident are you in your plan and why?",
-      "type": "textarea",
-      "role": "reflection",
-      "required": true,
-      "validation": {
-        "min_length": 40,
-        "max_length": 1500
-      }
+      "validation": { "min_length": 40, "max_length": 1500 }
     },
     {
       "id": "total_monthly_expenses",
@@ -570,10 +647,7 @@
       "role": "derived",
       "required": false,
       "compute_key": "total_monthly_expenses",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
     },
     {
       "id": "monthly_surplus",
@@ -583,24 +657,31 @@
       "role": "derived",
       "required": false,
       "compute_key": "monthly_surplus",
-      "ui": {
-        "prefix": "$",
-        "read_only": true
-      }
+      "ui": { "prefix": "$", "read_only": true }
+    },
+    {
+      "id": "housing_affordability_ratio",
+      "section_id": "summary",
+      "label": "Housing % of Net Income (Derived)",
+      "type": "number",
+      "role": "derived",
+      "required": false,
+      "compute_key": "housing_affordability_ratio",
+      "ui": { "read_only": true }
     }
   ],
   "evidence_requirements": [
     {
       "id": "rental_ad",
-      "label": "Rental Ad Evidence",
-      "description": "Provide a rental listing URL and optionally an uploaded screenshot/PDF.",
+      "label": "Rental Advertisement Evidence",
+      "description": "Upload a rental ad screenshot/PDF or provide URL.",
       "required": true,
       "section_id": "housing"
     },
     {
       "id": "vehicle_ad",
-      "label": "Vehicle Ad Evidence",
-      "description": "Provide a vehicle listing URL and optionally an uploaded screenshot/PDF.",
+      "label": "Vehicle Advertisement Evidence",
+      "description": "Upload a vehicle ad screenshot/PDF or provide URL.",
       "required": true,
       "section_id": "transportation"
     }
@@ -632,11 +713,13 @@
           "vehicle_down_payment_amount",
           "vehicle_term_months",
           "vehicle_apr_percent",
-          "km_per_week",
+          "km_per_month",
+          "fuel_economy_l_per_100km",
+          "gas_price_per_litre",
+          "maintenance_monthly",
           "transit_monthly_pass",
-          "transport_insurance_monthly",
-          "parking_monthly",
           "transport_loan_payment_monthly",
+          "transport_fuel_monthly",
           "transport_operating_monthly",
           "transport_monthly_total"
         ]

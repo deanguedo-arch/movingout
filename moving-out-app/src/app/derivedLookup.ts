@@ -14,14 +14,24 @@ export function lookupDerivedValue(derived: DerivedTotals, computeKey: string | 
       return derived.housing.total;
     case "transport_loan_payment_monthly":
       return derived.transportation.loan_payment;
+    case "transport_fuel_monthly":
+      return derived.transportation.fuel_cost;
     case "transport_operating_monthly":
       return derived.transportation.operating_cost;
     case "transport_monthly_total":
       return derived.transportation.total;
+    case "groceries_weekly_total":
+      return derived.living_expenses.groceries_weekly;
+    case "groceries_monthly":
+      return derived.living_expenses.groceries;
+    case "essentials_total":
+      return derived.living_expenses.total;
     case "total_monthly_expenses":
       return derived.total_monthly_expenses;
     case "monthly_surplus":
       return derived.monthly_surplus;
+    case "housing_affordability_ratio":
+      return derived.housing.affordability_ratio;
     default:
       return "";
   }

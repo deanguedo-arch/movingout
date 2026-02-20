@@ -4,5 +4,7 @@
   "affordability_fail": true,
   "deficit": true,
   "fragile_buffer": true,
-  "surplus_or_deficit_amount": -427.39
+  "low_vehicle_price": false,
+  "unsourced_categories": [],
+  "surplus_or_deficit_amount": -216.85
 }

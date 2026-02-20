@@ -32,7 +32,7 @@ export function EvidencePage() {
     <section className="page">
       <header className="page-header">
         <h1>Evidence Center</h1>
-        <p>Add required rental and vehicle evidence. URL is required; file upload is optional.</p>
+        <p>Add required rental and vehicle evidence. A URL or an uploaded file both satisfy the requirement.</p>
       </header>
 
       <div className="card">

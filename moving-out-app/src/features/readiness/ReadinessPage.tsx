@@ -9,6 +9,10 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+function badge(label: string, tone: "warn" | "ok") {
+  return <span className={tone === "ok" ? "status-badge ok" : "status-badge warn"}>{label}</span>;
+}
+
 export function ReadinessPage() {
   const { schema, submission } = useAppState();
   const fieldLabelMap = useMemo(
@@ -20,14 +24,14 @@ export function ReadinessPage() {
     <section className="page">
       <header className="page-header">
         <h1>Readiness Check</h1>
-        <p>Use this list to fix the most important issues first.</p>
+        <p>Transparent warnings only. No gating and no extra workflow.</p>
       </header>
 
       <div className="card-grid">
         <article className="card">
           <h2>Missing Required Fields</h2>
           {submission.flags.missing_required_fields.length === 0 ? (
-            <p>None.</p>
+            <p>{badge("Complete", "ok")}</p>
           ) : (
             <ul>
               {submission.flags.missing_required_fields.map((fieldId) => (
@@ -40,7 +44,7 @@ export function ReadinessPage() {
         <article className="card">
           <h2>Missing Required Evidence</h2>
           {submission.flags.missing_required_evidence.length === 0 ? (
-            <p>None.</p>
+            <p>{badge("Complete", "ok")}</p>
           ) : (
             <ul>
               {submission.flags.missing_required_evidence.map((evidenceId) => (
@@ -51,15 +55,32 @@ export function ReadinessPage() {
         </article>
 
         <article className="card">
-          <h2>Budget Health</h2>
+          <h2>Budget Signals</h2>
           <ul>
-            <li>Affordability warning: {submission.flags.affordability_fail ? "Yes" : "No"}</li>
-            <li>Deficit: {submission.flags.deficit ? "Yes" : "No"}</li>
-            <li>Fragile buffer: {submission.flags.fragile_buffer ? "Yes" : "No"}</li>
+            <li>Affordability: {submission.flags.affordability_fail ? badge("Housing heavy", "warn") : badge("OK", "ok")}</li>
+            <li>Deficit: {submission.flags.deficit ? badge("Deficit", "warn") : badge("Surplus", "ok")}</li>
+            <li>Low buffer: {submission.flags.fragile_buffer ? badge("Low buffer", "warn") : badge("OK", "ok")}</li>
+            <li>
+              Vehicle minimum:{" "}
+              {submission.flags.low_vehicle_price ? badge("Below $3,000", "warn") : badge("OK", "ok")}
+            </li>
             <li>Surplus/Deficit amount: {formatCurrency(submission.flags.surplus_or_deficit_amount)}</li>
           </ul>
         </article>
       </div>
+
+      <section className="card">
+        <h2>Source Confidence</h2>
+        {submission.flags.unsourced_categories.length === 0 ? (
+          <p>{badge("All major categories sourced", "ok")}</p>
+        ) : (
+          <ul>
+            {submission.flags.unsourced_categories.map((category) => (
+              <li key={category}>{badge(`${category}: unsourced estimate`, "warn")}</li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="card">
         <h2>Fix Next</h2>

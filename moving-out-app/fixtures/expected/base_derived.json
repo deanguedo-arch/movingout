@@ -1,44 +1,52 @@
 {
-  "gross_monthly_income": 3057.8,
-  "net_monthly_income": 2335.85,
+  "gross_monthly_income": 3619.04,
+  "net_monthly_income": 2800,
   "deductions": {
-    "income_tax": 458.67,
-    "cpp": 181.94,
-    "ei": 50.76,
-    "union_dues": 30.58,
-    "total": 721.95
+    "income_tax": 520.36,
+    "cpp": 206.41,
+    "ei": 57.59,
+    "union_dues": 34.68,
+    "total": 819.04
   },
   "housing": {
     "rent": 900,
-    "utilities": 150,
-    "renter_insurance": 20,
-    "internet_phone": 90,
-    "other": 40,
-    "total": 1200
+    "utilities": 180,
+    "renter_insurance": 25,
+    "internet_phone": 120,
+    "other": 60,
+    "total": 1285,
+    "affordability_ratio": 0.39
   },
   "transportation": {
     "mode": "car",
-    "vehicle_price": 16000,
-    "down_payment": 1600,
-    "financed_principal": 14400,
-    "term_months": 60,
-    "apr_percent": 7.5,
-    "loan_payment": 288.54,
-    "operating_cost": 124.7,
+    "vehicle_price": 8500,
+    "down_payment": 850,
+    "financed_principal": 7650,
+    "term_months": 48,
+    "apr_percent": 7,
+    "loan_payment": 183.6,
+    "fuel_economy_l_per_100km": 8.5,
+    "gas_price_per_litre": 1.45,
+    "km_per_month": 1000,
+    "fuel_cost": 123.25,
+    "maintenance": 120,
+    "operating_cost": 243.25,
+    "insurance": 190,
+    "parking": 80,
     "transit_pass": 0,
-    "insurance": 180,
-    "parking": 60,
-    "total": 653.24
+    "total": 696.85
   },
   "living_expenses": {
-    "groceries": 350,
-    "health_medical": 60,
-    "personal": 120,
-    "entertainment": 100,
-    "savings": 200,
-    "other": 80,
-    "total": 910
+    "groceries_weekly": 55,
+    "groceries": 220,
+    "clothing": 120,
+    "household_maintenance": 150,
+    "health_hygiene": 90,
+    "recreation": 140,
+    "savings": 220,
+    "misc": 95,
+    "total": 1035
   },
-  "total_monthly_expenses": 2763.24,
-  "monthly_surplus": -427.39
+  "total_monthly_expenses": 3016.85,
+  "monthly_surplus": -216.85
 }

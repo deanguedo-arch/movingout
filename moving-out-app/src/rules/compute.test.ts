@@ -22,6 +22,8 @@ function emptyFlags(): ReadinessFlags {
     affordability_fail: false,
     deficit: false,
     fragile_buffer: false,
+    low_vehicle_price: false,
+    unsourced_categories: [],
     surplus_or_deficit_amount: 0,
     fix_next: [],
   };
@@ -44,6 +46,8 @@ describe("rules engine", () => {
     affordability_fail: boolean;
     deficit: boolean;
     fragile_buffer: boolean;
+    low_vehicle_price: boolean;
+    unsourced_categories: string[];
     surplus_or_deficit_amount: number;
   }>("expected", "missing_evidence_flags.json");
 
@@ -124,6 +128,8 @@ describe("rules engine", () => {
     expect(flags.affordability_fail).toBe(expectedFlags.affordability_fail);
     expect(flags.deficit).toBe(expectedFlags.deficit);
     expect(flags.fragile_buffer).toBe(expectedFlags.fragile_buffer);
+    expect(flags.low_vehicle_price).toBe(expectedFlags.low_vehicle_price);
+    expect(flags.unsourced_categories).toEqual(expectedFlags.unsourced_categories);
     expect(flags.surplus_or_deficit_amount).toBe(expectedFlags.surplus_or_deficit_amount);
   });
 });

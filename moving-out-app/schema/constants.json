@@ -1,24 +1,28 @@
 {
-  "schema_version": "1.0.0",
-  "constants_version": "1.0.0",
+  "schema_version": "1.1.0",
+  "constants_version": "1.1.0",
   "dataset_date": "2026-02-20",
   "currency": "CAD",
+  "income": {
+    "default_mode": "net_paycheque",
+    "cra_pdoc_url": "https://www.canada.ca/en/revenue-agency/services/e-services/digital-services-businesses/payroll-deductions-online-calculator.html"
+  },
   "deductions": {
     "income_tax_rate": {
       "value": 0.15,
-      "description": "Income tax fraction applied to gross monthly income."
+      "description": "Fallback deduction rate for hourly-estimate mode only."
     },
     "cpp_rate": {
       "value": 0.0595,
-      "description": "CPP deduction fraction."
+      "description": "Fallback CPP rate for hourly-estimate mode only."
     },
     "ei_rate": {
       "value": 0.0166,
-      "description": "EI deduction fraction."
+      "description": "Fallback EI rate for hourly-estimate mode only."
     },
     "union_dues_rate": {
       "value": 0.01,
-      "description": "Union dues deduction fraction."
+      "description": "Fallback union dues rate for hourly-estimate mode only."
     }
   },
   "thresholds": {
@@ -28,71 +32,87 @@
     },
     "buffer_warning_threshold": {
       "value": 150,
-      "description": "Monthly surplus below this threshold is flagged as fragile."
+      "description": "Monthly surplus below this threshold is considered fragile."
     }
   },
   "transportation": {
     "weeks_per_month": {
       "value": 4.33,
-      "description": "Average weeks per month for mileage conversion."
+      "description": "Used when converting weekly driving assumptions."
     },
     "default_down_payment_fraction": {
       "value": 0.1,
-      "description": "Used when vehicle down payment amount is not entered."
+      "description": "Default down payment fraction for vehicle financing."
     },
     "default_term_months": {
-      "value": 60,
-      "description": "Default auto loan term."
+      "value": 48,
+      "description": "Default vehicle financing term."
     },
     "default_apr_percent": {
-      "value": 7.5,
-      "description": "Default annual percentage rate."
+      "value": 7,
+      "description": "Default vehicle loan APR."
     },
+    "minimum_vehicle_price": {
+      "value": 3000,
+      "description": "Assignment warning threshold for vehicle price."
+    },
+    "transit_monthly_pass_default": {
+      "value": 102,
+      "description": "Edmonton adult ARC monthly cap (cached snapshot)."
+    },
+    "transit_monthly_pass_source_url": "https://www.edmonton.ca/ets/fares-passes",
+    "transit_monthly_pass_last_updated": "2026-02-01",
     "operating_cost_per_km": {
       "car": {
         "value": 0.18,
-        "description": "Operating cost per km for cars."
+        "description": "Legacy per-km baseline for quick estimate mode."
       },
       "truck": {
         "value": 0.28,
-        "description": "Operating cost per km for trucks."
+        "description": "Legacy per-km baseline for quick estimate mode."
       },
       "transit": {
         "value": 0,
-        "description": "Operating cost per km for transit mode."
+        "description": "Transit mode does not use per-km operating estimate."
       }
     },
     "loan_payment_table": {
-      "description": "Estimated monthly payments for financed principal values at baseline term/APR.",
-      "baseline_term_months": 60,
-      "baseline_apr_percent": 7.5,
+      "description": "Approximate monthly payments at 7% APR, 48 months, for assignment estimation.",
+      "baseline_term_months": 48,
+      "baseline_apr_percent": 7,
       "points": [
-        {
-          "principal": 5000,
-          "monthly_payment": 100.19
-        },
-        {
-          "principal": 10000,
-          "monthly_payment": 200.38
-        },
-        {
-          "principal": 15000,
-          "monthly_payment": 300.56
-        },
-        {
-          "principal": 20000,
-          "monthly_payment": 400.75
-        },
-        {
-          "principal": 25000,
-          "monthly_payment": 500.94
-        },
-        {
-          "principal": 30000,
-          "monthly_payment": 601.13
-        }
+        { "principal": 2700, "monthly_payment": 65 },
+        { "principal": 3000, "monthly_payment": 72 },
+        { "principal": 4000, "monthly_payment": 96 },
+        { "principal": 5000, "monthly_payment": 120 },
+        { "principal": 7000, "monthly_payment": 168 },
+        { "principal": 8000, "monthly_payment": 192 },
+        { "principal": 10000, "monthly_payment": 240 },
+        { "principal": 12000, "monthly_payment": 287 },
+        { "principal": 15000, "monthly_payment": 359 },
+        { "principal": 18000, "monthly_payment": 431 },
+        { "principal": 20000, "monthly_payment": 479 },
+        { "principal": 25000, "monthly_payment": 599 }
       ]
     }
+  },
+  "food": {
+    "weeks_per_month": {
+      "value": 4,
+      "description": "Food worksheet weekly total multiplied by this value."
+    },
+    "default_items": [
+      "Spaghetti",
+      "Spaghetti sauce",
+      "Potatoes",
+      "Milk",
+      "Bread",
+      "Chicken",
+      "Lean hamburger",
+      "Apples",
+      "Bananas",
+      "Frozen vegetables"
+    ]
   },
   "teacher_mode": {
     "default_passcode": "teacher123"

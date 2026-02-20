@@ -1,5 +1,5 @@
 export type FieldRole = "input" | "derived" | "reflection";
-export type FieldType = "text" | "number" | "select" | "textarea" | "checkbox";
+export type FieldType = "text" | "number" | "select" | "textarea" | "checkbox" | "food_table";
 export type EvidenceType = "rental_ad" | "vehicle_ad" | "other";
 
 export type AssignmentSection = {
@@ -27,6 +27,13 @@ export type AssignmentFieldUi = {
   help_text?: string;
   prefix?: string;
   read_only?: boolean;
+  source_for_field_id?: string;
+  table_columns?: Array<{
+    id: string;
+    label: string;
+    type: "text" | "number" | "url";
+  }>;
+  default_rows?: number;
 };
 
 export type AssignmentField = {
@@ -84,6 +91,10 @@ export type Constants = {
   constants_version: string;
   dataset_date: string;
   currency: string;
+  income: {
+    default_mode: "net_paycheque" | "hourly_estimate";
+    cra_pdoc_url: string;
+  };
   deductions: {
     income_tax_rate: NumericConstant;
     cpp_rate: NumericConstant;
@@ -99,6 +110,10 @@ export type Constants = {
     default_down_payment_fraction: NumericConstant;
     default_term_months: NumericConstant;
     default_apr_percent: NumericConstant;
+    minimum_vehicle_price: NumericConstant;
+    transit_monthly_pass_default: NumericConstant;
+    transit_monthly_pass_source_url: string;
+    transit_monthly_pass_last_updated: string;
     operating_cost_per_km: {
       car: NumericConstant;
       truck: NumericConstant;
@@ -110,6 +125,10 @@ export type Constants = {
       baseline_apr_percent: number;
       points: LoanPaymentPoint[];
     };
+  };
+  food: {
+    weeks_per_month: NumericConstant;
+    default_items: string[];
   };
   teacher_mode: {
     default_passcode: string;
@@ -139,6 +158,7 @@ export type DerivedTotals = {
     internet_phone: number;
     other: number;
     total: number;
+    affordability_ratio: number;
   };
   transportation: {
     mode: "car" | "truck" | "transit";
@@ -148,6 +168,11 @@ export type DerivedTotals = {
     term_months: number;
     apr_percent: number;
     loan_payment: number;
+    fuel_economy_l_per_100km: number;
+    gas_price_per_litre: number;
+    km_per_month: number;
+    fuel_cost: number;
+    maintenance: number;
     operating_cost: number;
     insurance: number;
     parking: number;
@@ -155,12 +180,14 @@ export type DerivedTotals = {
     total: number;
   };
   living_expenses: {
+    groceries_weekly: number;
     groceries: number;
-    health_medical: number;
-    personal: number;
-    entertainment: number;
+    clothing: number;
+    household_maintenance: number;
+    health_hygiene: number;
+    recreation: number;
     savings: number;
-    other: number;
+    misc: number;
     total: number;
   };
   total_monthly_expenses: number;
@@ -173,6 +200,8 @@ export type ReadinessFlags = {
   affordability_fail: boolean;
   deficit: boolean;
   fragile_buffer: boolean;
+  low_vehicle_price: boolean;
+  unsourced_categories: string[];
   surplus_or_deficit_amount: number;
   fix_next: string[];
 };
@@ -239,4 +268,12 @@ export type EventLogEntry = {
   timestamp: string;
   event_type: EventType;
   payload: Record<string, unknown>;
+};
+
+export type FoodTableRow = {
+  id: string;
+  item: string;
+  planned_purchase: string;
+  estimated_cost: number;
+  source_url: string;
 };

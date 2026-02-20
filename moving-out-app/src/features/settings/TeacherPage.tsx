@@ -65,11 +65,20 @@ export function TeacherPage() {
         case "transport.default_apr_percent":
           next.transportation.default_apr_percent.value = value;
           break;
+        case "transport.minimum_vehicle_price":
+          next.transportation.minimum_vehicle_price.value = value;
+          break;
+        case "transport.transit_default":
+          next.transportation.transit_monthly_pass_default.value = value;
+          break;
         case "transport.car_cost_per_km":
           next.transportation.operating_cost_per_km.car.value = value;
           break;
         case "transport.truck_cost_per_km":
           next.transportation.operating_cost_per_km.truck.value = value;
+          break;
+        case "food.weeks_per_month":
+          next.food.weeks_per_month.value = value;
           break;
         case "transport.baseline_term":
           next.transportation.loan_payment_table.baseline_term_months = value;
@@ -226,6 +235,27 @@ export function TeacherPage() {
                 step="0.01"
                 value={draft.transportation.default_apr_percent.value}
                 onChange={(event) => setNumeric("transport.default_apr_percent", Number(event.target.value))}
+              />
+              <label>Minimum Vehicle Price</label>
+              <input
+                type="number"
+                step="1"
+                value={draft.transportation.minimum_vehicle_price.value}
+                onChange={(event) => setNumeric("transport.minimum_vehicle_price", Number(event.target.value))}
+              />
+              <label>Default Transit Pass</label>
+              <input
+                type="number"
+                step="0.01"
+                value={draft.transportation.transit_monthly_pass_default.value}
+                onChange={(event) => setNumeric("transport.transit_default", Number(event.target.value))}
+              />
+              <label>Food Weeks Per Month Multiplier</label>
+              <input
+                type="number"
+                step="0.1"
+                value={draft.food.weeks_per_month.value}
+                onChange={(event) => setNumeric("food.weeks_per_month", Number(event.target.value))}
               />
               <label>Car Cost/km</label>
               <input

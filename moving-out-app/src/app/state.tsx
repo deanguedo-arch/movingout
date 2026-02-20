@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { removeEvidenceByType, upsertEvidenceForType } from "../evidence/evidenceService";
 import { buildSubmissionZip } from "../export/exportZip";
 import { restoreFromSubmissionZip } from "../export/importZip";
+import { refreshTransitSnapshot as refreshTransitSnapshotService } from "../integrations/transitFares";
 import { appendEvent } from "../logs/eventLog";
 import { listEventLog } from "../logs/eventLog";
 import { applyPinnedChoice, createPinnedChoice, removePinnedChoice } from "../pinning/pinningService";
@@ -43,6 +44,7 @@ type AppStateContextValue = {
   unpinCategory: (category: "housing" | "transportation") => Promise<void>;
   setConstantsOverride: (nextConstants: Constants, changedKeys: string[]) => Promise<void>;
   resetConstantsToDefault: () => Promise<void>;
+  refreshTransitSnapshot: () => Promise<number>;
   exportSubmissionPackage: () => Promise<Blob>;
   importSubmissionPackage: (zipBlob: Blob) => Promise<void>;
   recomputeNow: () => Promise<void>;
@@ -58,6 +60,8 @@ const EMPTY_FLAGS: ReadinessFlags = {
   affordability_fail: false,
   deficit: false,
   fragile_buffer: false,
+  low_vehicle_price: false,
+  unsourced_categories: [],
   surplus_or_deficit_amount: 0,
   fix_next: [],
 };
@@ -73,7 +77,34 @@ function buildInitialSubmission(args: { schema: AssignmentSchema; constants: Con
       return;
     }
     if (field.role === "input") {
-      inputs[field.id] = field.type === "checkbox" ? false : null;
+      if (field.type === "checkbox") {
+        inputs[field.id] = false;
+        return;
+      }
+      if (field.id === "income_mode") {
+        inputs[field.id] = constants.income.default_mode;
+        return;
+      }
+      if (field.id === "paycheques_per_month") {
+        inputs[field.id] = 2;
+        return;
+      }
+      if (field.id === "transport_mode") {
+        inputs[field.id] = "car";
+        return;
+      }
+      if (field.id === "food_table_weekly") {
+        const rows = constants.food.default_items.map((item, index) => ({
+          id: `seed-${index + 1}`,
+          item,
+          planned_purchase: "",
+          estimated_cost: 0,
+          source_url: "",
+        }));
+        inputs[field.id] = JSON.stringify(rows);
+        return;
+      }
+      inputs[field.id] = null;
     }
   });
 
@@ -410,6 +441,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [reloadFromStorage],
   );
 
+  const refreshTransitSnapshot = useCallback(async (): Promise<number> => {
+    const refreshed = await refreshTransitSnapshotService(constants);
+    await setConstantsOverride(refreshed.constants, ["transportation.transit_monthly_pass_default"]);
+    return refreshed.monthlyCap;
+  }, [constants, setConstantsOverride]);
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       loading,
@@ -426,6 +463,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       unpinCategory,
       setConstantsOverride,
       resetConstantsToDefault,
+      refreshTransitSnapshot,
       exportSubmissionPackage,
       importSubmissionPackage,
       recomputeNow,
@@ -440,6 +478,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       loading,
       removeEvidence,
       pinCategory,
+      refreshTransitSnapshot,
       resetConstantsToDefault,
       recomputeNow,
       reloadFromStorage,
