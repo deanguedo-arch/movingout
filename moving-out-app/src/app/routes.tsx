@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./AppShell";
 import { PlaceholderPage } from "../features/common/PlaceholderPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import { EvidencePage } from "../features/evidence/EvidencePage";
 import { ReadinessPage } from "../features/readiness/ReadinessPage";
 import { SectionPage } from "../features/sections/SectionPage";
 import { SettingsPage } from "../features/settings/SettingsPage";
@@ -14,15 +15,7 @@ export function AppRoutes() {
         <Route element={<AppShell />} path="/">
           <Route element={<DashboardPage />} index />
           <Route element={<SectionPage />} path="sections/:sectionId" />
-          <Route
-            element={
-              <PlaceholderPage
-                title="Evidence Center"
-                message="Evidence upload and evidence status UI is implemented in the next checkpoint."
-              />
-            }
-            path="evidence"
-          />
+          <Route element={<EvidencePage />} path="evidence" />
           <Route element={<ReadinessPage />} path="readiness" />
           <Route
             element={

@@ -1,11 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { removeEvidenceByType, upsertEvidenceForType } from "../evidence/evidenceService";
 import { appendEvent } from "../logs/eventLog";
 import { computeBudget, computeReadinessFlags } from "../rules";
 import { getAssignmentSchema, getDefaultConstants } from "../schema";
-import type { AssignmentField, AssignmentSchema, Constants, EvidenceItem, InputValue, ReadinessFlags, Submission } from "../schema";
+import type {
+  AssignmentField,
+  AssignmentSchema,
+  Constants,
+  EvidenceFile,
+  EvidenceItem,
+  EvidenceType,
+  InputValue,
+  ReadinessFlags,
+  Submission,
+} from "../schema";
 import {
   getConstantsOverrides,
   getSubmission,
+  listEvidenceFiles,
   listEvidenceItems,
   saveSubmission,
 } from "../storage/repositories";
@@ -16,8 +28,11 @@ type AppStateContextValue = {
   constants: Constants;
   submission: Submission;
   evidence: EvidenceItem[];
+  evidenceFiles: EvidenceFile[];
   setInputValue: (fieldId: string, value: InputValue) => Promise<void>;
   setReflectionValue: (fieldId: string, value: string) => Promise<void>;
+  saveEvidence: (args: { type: EvidenceType; url?: string; files?: File[] }) => Promise<void>;
+  removeEvidence: (type: EvidenceType) => Promise<void>;
   recomputeNow: () => Promise<void>;
   reloadFromStorage: () => Promise<void>;
 };
@@ -121,13 +136,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }),
   );
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
 
   const reloadFromStorage = useCallback(async () => {
     setLoading(true);
-    const [constantsOverrides, savedSubmission, evidenceItems] = await Promise.all([
+    const [constantsOverrides, savedSubmission, evidenceItems, files] = await Promise.all([
       getConstantsOverrides(),
       getSubmission(),
       listEvidenceItems(),
+      listEvidenceFiles(),
     ]);
 
     const activeConstants = constantsOverrides ?? defaultConstants;
@@ -147,6 +164,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     setConstants(activeConstants);
     setEvidence(evidenceItems);
+    setEvidenceFiles(files);
     setSubmission(hydrated);
     await saveSubmission(hydrated);
     setLoading(false);
@@ -235,6 +253,48 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [constants, evidence, persistSubmission, submission],
   );
 
+  const saveEvidence = useCallback(
+    async (args: { type: EvidenceType; url?: string; files?: File[] }) => {
+      const result = await upsertEvidenceForType({
+        type: args.type,
+        url: args.url,
+        files: args.files ?? [],
+        submission,
+      });
+      const files = await listEvidenceFiles();
+      const nextSubmission = recomputeSubmission({
+        submission: result.submission,
+        schema,
+        constants,
+        evidence: result.evidenceItems,
+      });
+      setEvidence(result.evidenceItems);
+      setEvidenceFiles(files);
+      await persistSubmission(nextSubmission);
+    },
+    [constants, persistSubmission, submission],
+  );
+
+  const removeEvidence = useCallback(
+    async (type: EvidenceType) => {
+      const result = await removeEvidenceByType({
+        type,
+        submission,
+      });
+      const files = await listEvidenceFiles();
+      const nextSubmission = recomputeSubmission({
+        submission: result.submission,
+        schema,
+        constants,
+        evidence: result.evidenceItems,
+      });
+      setEvidence(result.evidenceItems);
+      setEvidenceFiles(files);
+      await persistSubmission(nextSubmission);
+    },
+    [constants, persistSubmission, submission],
+  );
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       loading,
@@ -242,17 +302,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       constants,
       submission,
       evidence,
+      evidenceFiles,
       setInputValue,
       setReflectionValue,
+      saveEvidence,
+      removeEvidence,
       recomputeNow,
       reloadFromStorage,
     }),
     [
       constants,
       evidence,
+      evidenceFiles,
       loading,
+      removeEvidence,
       recomputeNow,
       reloadFromStorage,
+      saveEvidence,
       setInputValue,
       setReflectionValue,
       submission,
