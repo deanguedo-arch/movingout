@@ -68,7 +68,7 @@ export function openBudgetDb(): Promise<IDBPDatabase<BudgetDbSchema>> {
       },
     });
   }
-  return dbPromise;
+  return dbPromise!;
 }
 
 export async function closeBudgetDb(): Promise<void> {

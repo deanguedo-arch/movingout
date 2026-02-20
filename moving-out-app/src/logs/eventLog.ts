@@ -6,7 +6,7 @@ const EVENT_SEQ_KEY = "event_seq";
 export async function listEventLog(): Promise<EventLogEntry[]> {
   const db = await openBudgetDb();
   const entries = await db.getAll("event_log");
-  return entries.sort((a, b) => a.seq - b.seq);
+  return entries.sort((a: EventLogEntry, b: EventLogEntry) => a.seq - b.seq);
 }
 
 export async function appendEvent(
