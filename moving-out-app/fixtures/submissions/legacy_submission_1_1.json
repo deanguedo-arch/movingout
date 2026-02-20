@@ -1,7 +1,7 @@
 {
   "id": "submission_base_001",
-  "schema_version": "1.2.0",
-  "constants_version": "1.2.0",
+  "schema_version": "1.1.0",
+  "constants_version": "1.1.0",
   "student": {
     "name": "Sample Student",
     "class": "CALM 20",
@@ -46,13 +46,13 @@
     "transit_source_url": "",
     "transport_insurance_monthly": 190,
     "parking_monthly": 80,
-    "food_table_weekly": "[{\"id\":\"food-1\",\"item\":\"Spaghetti\",\"planned_purchase\":\"1 box\",\"estimated_cost\":4.5,\"source_url\":\"https://example.com/food1\"},{\"id\":\"food-2\",\"item\":\"Chicken\",\"planned_purchase\":\"1.5 kg\",\"estimated_cost\":26.5,\"source_url\":\"https://example.com/food2\"},{\"id\":\"food-3\",\"item\":\"Milk\",\"planned_purchase\":\"2L\",\"estimated_cost\":5.5,\"source_url\":\"https://example.com/food3\"},{\"id\":\"food-4\",\"item\":\"Apples\",\"planned_purchase\":\"mixed\",\"estimated_cost\":18.5,\"source_url\":\"https://example.com/food4\"}]",
+    "food_table_weekly": "[{\"id\":\"food-1\",\"item\":\"Spaghetti\",\"planned_purchase\":\"1 box\",\"estimated_cost\":4.5,\"source_url\":\"https://example.com/food1\"},{\"id\":\"food-2\",\"item\":\"Chicken\",\"planned_purchase\":\"1.5 kg\",\"estimated_cost\":26.5,\"source_url\":\"https://example.com/food2\"},{\"id\":\"food-3\",\"item\":\"Milk\",\"planned_purchase\":\"2L\",\"estimated_cost\":5.5,\"source_url\":\"https://example.com/food3\"},{\"id\":\"food-4\",\"item\":\"Fruit\",\"planned_purchase\":\"mixed\",\"estimated_cost\":18.5,\"source_url\":\"https://example.com/food4\"}]",
+    "clothing_monthly": 120,
     "household_maintenance_monthly": 150,
+    "health_hygiene_monthly": 90,
+    "recreation_monthly": 140,
     "savings_monthly": 220,
-    "clothing_table_annual": "[{\"id\":\"cloth-1\",\"item\":\"Other clothing\",\"quantity_per_year\":1,\"average_cost\":1440,\"annual_total\":1440,\"source_url\":\"https://example.com/clothing\"}]",
-    "health_hygiene_table_annual": "[{\"id\":\"health-1\",\"item\":\"Other health/hygiene\",\"annual_total\":1080,\"monthly_total\":90,\"source_url\":\"https://example.com/health\"}]",
-    "recreation_table_annual": "[{\"id\":\"rec-1\",\"item\":\"Other recreation\",\"annual_total\":1680,\"monthly_total\":140,\"source_url\":\"https://example.com/recreation\"}]",
-    "misc_table_monthly": "[{\"id\":\"misc-1\",\"item\":\"Other\",\"monthly_total\":95,\"source_url\":\"https://example.com/misc\"}]"
+    "misc_monthly": 95
   },
   "reflections": {
     "ref_values_alignment": "I chose practical options that keep my housing and transport as manageable as possible while still being realistic.",

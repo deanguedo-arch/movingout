@@ -35,7 +35,7 @@ describe("submission migration", () => {
     const constants = getDefaultConstants();
     const legacy = readJsonFixture<Omit<Submission, "derived" | "flags" | "pinned" | "evidence_refs" | "updated_at">>(
       "submissions",
-      "base_submission.json",
+      "legacy_submission_1_1.json",
     );
 
     const legacySubmission: Submission = {
