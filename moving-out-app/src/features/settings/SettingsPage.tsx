@@ -1,23 +1,14 @@
-import { useState } from "react";
 import { useAppState } from "../../app/state";
 
-export function SettingsPage() {
-  const { constants, refreshTransitSnapshot } = useAppState();
-  const [status, setStatus] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function updateTransit() {
-    setBusy(true);
-    setStatus("Refreshing transit fares...");
-    try {
-      const updated = await refreshTransitSnapshot();
-      setStatus(`Transit fare snapshot updated to $${updated.toFixed(2)}.`);
-    } catch (error) {
-      setStatus(`Transit refresh failed: ${(error as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+function formatDate(value: string): string {
+  if (!value) {
+    return "Unknown";
   }
+  return value;
+}
+
+export function SettingsPage() {
+  const { constants } = useAppState();
 
   return (
     <section className="page">
@@ -36,20 +27,51 @@ export function SettingsPage() {
         </article>
 
         <article className="card">
-          <h2>Transit Snapshot</h2>
+          <h2>ETS Transit Snapshot</h2>
           <ul>
-            <li>Monthly pass default: ${constants.transportation.transit_monthly_pass_default.value.toFixed(2)}</li>
-            <li>Last updated: {constants.transportation.transit_monthly_pass_last_updated}</li>
+            <li>Value: ${constants.transportation.transit_monthly_pass_default.value.toFixed(2)} / month</li>
+            <li>Last updated: {formatDate(constants.transportation.transit_monthly_pass_last_updated)}</li>
+            <li>Status: Cached local snapshot</li>
           </ul>
           <a href={constants.transportation.transit_monthly_pass_source_url} rel="noreferrer" target="_blank">
-            Current source
+            Source
           </a>
-          <div className="page-actions">
-            <button disabled={busy} type="button" onClick={() => void updateTransit()}>
-              Update transit fares
-            </button>
-          </div>
-          {status ? <p>{status}</p> : null}
+        </article>
+
+        <article className="card">
+          <h2>Alberta Minimum Wage Snapshot</h2>
+          <ul>
+            <li>Value: ${constants.economic_snapshot.minimum_wage_ab.value.toFixed(2)} / hour</li>
+            <li>Last updated: {formatDate(constants.economic_snapshot.minimum_wage_ab.last_updated)}</li>
+            <li>Status: Cached local snapshot</li>
+          </ul>
+          <a href={constants.economic_snapshot.minimum_wage_ab.source_url} rel="noreferrer" target="_blank">
+            Source
+          </a>
+        </article>
+
+        <article className="card">
+          <h2>Alberta Gas Benchmark</h2>
+          <ul>
+            <li>Value: ${constants.economic_snapshot.gas_benchmark_ab.value.toFixed(3)} / L</li>
+            <li>Last updated: {formatDate(constants.economic_snapshot.gas_benchmark_ab.last_updated)}</li>
+            <li>Status: Cached local snapshot</li>
+          </ul>
+          <a href={constants.economic_snapshot.gas_benchmark_ab.source_url} rel="noreferrer" target="_blank">
+            Source
+          </a>
+        </article>
+
+        <article className="card">
+          <h2>Canada CPI YoY Benchmark</h2>
+          <ul>
+            <li>Value: {constants.economic_snapshot.cpi_yoy_canada.value.toFixed(2)}%</li>
+            <li>Last updated: {formatDate(constants.economic_snapshot.cpi_yoy_canada.last_updated)}</li>
+            <li>Status: Cached local snapshot</li>
+          </ul>
+          <a href={constants.economic_snapshot.cpi_yoy_canada.source_url} rel="noreferrer" target="_blank">
+            Source
+          </a>
         </article>
 
         <article className="card">

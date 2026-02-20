@@ -7,7 +7,13 @@ function deepCloneConstants(constants: Constants): Constants {
 }
 
 export function TeacherPage() {
-  const { constants, setConstantsOverride, resetConstantsToDefault } = useAppState();
+  const {
+    constants,
+    setConstantsOverride,
+    resetConstantsToDefault,
+    refreshTransitSnapshot,
+    refreshMinimumWageSnapshot,
+  } = useAppState();
   const [inputPasscode, setInputPasscode] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [error, setError] = useState("");
@@ -86,6 +92,35 @@ export function TeacherPage() {
         case "transport.baseline_apr":
           next.transportation.loan_payment_table.baseline_apr_percent = value;
           break;
+        case "snapshot.gas":
+          next.economic_snapshot.gas_benchmark_ab.value = value;
+          break;
+        case "snapshot.cpi":
+          next.economic_snapshot.cpi_yoy_canada.value = value;
+          break;
+        default:
+          break;
+      }
+      return next;
+    });
+  }
+
+  function setText(path: string, value: string) {
+    setDraft((prev) => {
+      const next = deepCloneConstants(prev);
+      switch (path) {
+        case "snapshot.gas_source":
+          next.economic_snapshot.gas_benchmark_ab.source_url = value;
+          break;
+        case "snapshot.gas_updated":
+          next.economic_snapshot.gas_benchmark_ab.last_updated = value;
+          break;
+        case "snapshot.cpi_source":
+          next.economic_snapshot.cpi_yoy_canada.source_url = value;
+          break;
+        case "snapshot.cpi_updated":
+          next.economic_snapshot.cpi_yoy_canada.last_updated = value;
+          break;
         default:
           break;
       }
@@ -128,6 +163,26 @@ export function TeacherPage() {
   async function resetDefaults() {
     await resetConstantsToDefault();
     setStatus("Constants reset to default values.");
+  }
+
+  async function refreshTransitNow() {
+    setStatus("Refreshing transit snapshot...");
+    try {
+      const value = await refreshTransitSnapshot();
+      setStatus(`Transit snapshot updated to $${value.toFixed(2)}.`);
+    } catch (refreshError) {
+      setStatus(`Transit refresh failed: ${(refreshError as Error).message}`);
+    }
+  }
+
+  async function refreshMinimumWageNow() {
+    setStatus("Refreshing Alberta minimum wage snapshot...");
+    try {
+      const value = await refreshMinimumWageSnapshot();
+      setStatus(`Minimum wage snapshot updated to $${value.toFixed(2)}.`);
+    } catch (refreshError) {
+      setStatus(`Minimum wage refresh failed: ${(refreshError as Error).message}`);
+    }
   }
 
   return (
@@ -270,6 +325,64 @@ export function TeacherPage() {
                 step="0.01"
                 value={draft.transportation.operating_cost_per_km.truck.value}
                 onChange={(event) => setNumeric("transport.truck_cost_per_km", Number(event.target.value))}
+              />
+            </article>
+
+            <article className="card">
+              <h2>Current Context Snapshots</h2>
+              <p>
+                Transit: ${draft.transportation.transit_monthly_pass_default.value.toFixed(2)} (updated {draft.transportation.transit_monthly_pass_last_updated})
+              </p>
+              <div className="page-actions">
+                <button type="button" onClick={() => void refreshTransitNow()}>
+                  Refresh Transit
+                </button>
+              </div>
+              <p>
+                Minimum wage: ${draft.economic_snapshot.minimum_wage_ab.value.toFixed(2)} (updated {draft.economic_snapshot.minimum_wage_ab.last_updated})
+              </p>
+              <div className="page-actions">
+                <button type="button" onClick={() => void refreshMinimumWageNow()}>
+                  Refresh Minimum Wage
+                </button>
+              </div>
+              <label>Gas benchmark ($/L)</label>
+              <input
+                type="number"
+                step="0.001"
+                value={draft.economic_snapshot.gas_benchmark_ab.value}
+                onChange={(event) => setNumeric("snapshot.gas", Number(event.target.value))}
+              />
+              <label>Gas benchmark source URL</label>
+              <input
+                type="text"
+                value={draft.economic_snapshot.gas_benchmark_ab.source_url}
+                onChange={(event) => setText("snapshot.gas_source", event.target.value)}
+              />
+              <label>Gas benchmark last updated</label>
+              <input
+                type="date"
+                value={draft.economic_snapshot.gas_benchmark_ab.last_updated}
+                onChange={(event) => setText("snapshot.gas_updated", event.target.value)}
+              />
+              <label>CPI YoY benchmark (%)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={draft.economic_snapshot.cpi_yoy_canada.value}
+                onChange={(event) => setNumeric("snapshot.cpi", Number(event.target.value))}
+              />
+              <label>CPI source URL</label>
+              <input
+                type="text"
+                value={draft.economic_snapshot.cpi_yoy_canada.source_url}
+                onChange={(event) => setText("snapshot.cpi_source", event.target.value)}
+              />
+              <label>CPI last updated</label>
+              <input
+                type="date"
+                value={draft.economic_snapshot.cpi_yoy_canada.last_updated}
+                onChange={(event) => setText("snapshot.cpi_updated", event.target.value)}
               />
             </article>
           </div>

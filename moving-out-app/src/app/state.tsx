@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { removeEvidenceByType, upsertEvidenceForType } from "../evidence/evidenceService";
 import { buildSubmissionZip } from "../export/exportZip";
 import { restoreFromSubmissionZip } from "../export/importZip";
+import { refreshMinimumWageSnapshot as refreshMinimumWageSnapshotService } from "../integrations/minimumWage";
 import { refreshTransitSnapshot as refreshTransitSnapshotService } from "../integrations/transitFares";
 import { appendEvent } from "../logs/eventLog";
 import { listEventLog } from "../logs/eventLog";
@@ -45,6 +46,7 @@ type AppStateContextValue = {
   setConstantsOverride: (nextConstants: Constants, changedKeys: string[]) => Promise<void>;
   resetConstantsToDefault: () => Promise<void>;
   refreshTransitSnapshot: () => Promise<number>;
+  refreshMinimumWageSnapshot: () => Promise<number>;
   exportSubmissionPackage: () => Promise<Blob>;
   importSubmissionPackage: (zipBlob: Blob) => Promise<void>;
   recomputeNow: () => Promise<void>;
@@ -618,6 +620,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return refreshed.monthlyCap;
   }, [constants, setConstantsOverride]);
 
+  const refreshMinimumWageSnapshot = useCallback(async (): Promise<number> => {
+    const refreshed = await refreshMinimumWageSnapshotService(constants);
+    await setConstantsOverride(refreshed.constants, ["economic_snapshot.minimum_wage_ab"]);
+    return refreshed.wage;
+  }, [constants, setConstantsOverride]);
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       loading,
@@ -635,6 +643,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setConstantsOverride,
       resetConstantsToDefault,
       refreshTransitSnapshot,
+      refreshMinimumWageSnapshot,
       exportSubmissionPackage,
       importSubmissionPackage,
       recomputeNow,
@@ -650,6 +659,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       removeEvidence,
       pinCategory,
       refreshTransitSnapshot,
+      refreshMinimumWageSnapshot,
       resetConstantsToDefault,
       recomputeNow,
       reloadFromStorage,
