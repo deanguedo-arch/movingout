@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "constants_version": "1.0.0",
+  "dataset_date": "2026-02-20",
+  "currency": "CAD",
+  "deductions": {
+    "income_tax_rate": {
+      "value": 0.15,
+      "description": "Income tax fraction applied to gross monthly income."
+    },
+    "cpp_rate": {
+      "value": 0.0595,
+      "description": "CPP deduction fraction."
+    },
+    "ei_rate": {
+      "value": 0.0166,
+      "description": "EI deduction fraction."
+    },
+    "union_dues_rate": {
+      "value": 0.01,
+      "description": "Union dues deduction fraction."
+    }
+  },
+  "thresholds": {
+    "affordability_housing_fraction_of_net": {
+      "value": 0.35,
+      "description": "Maximum recommended rent + utilities share of net monthly income."
+    },
+    "buffer_warning_threshold": {
+      "value": 150,
+      "description": "Monthly surplus below this threshold is flagged as fragile."
+    }
+  },
+  "transportation": {
+    "weeks_per_month": {
+      "value": 4.33,
+      "description": "Average weeks per month for mileage conversion."
+    },
+    "default_down_payment_fraction": {
+      "value": 0.1,
+      "description": "Used when vehicle down payment amount is not entered."
+    },
+    "default_term_months": {
+      "value": 60,
+      "description": "Default auto loan term."
+    },
+    "default_apr_percent": {
+      "value": 7.5,
+      "description": "Default annual percentage rate."
+    },
+    "operating_cost_per_km": {
+      "car": {
+        "value": 0.18,
+        "description": "Operating cost per km for cars."
+      },
+      "truck": {
+        "value": 0.28,
+        "description": "Operating cost per km for trucks."
+      },
+      "transit": {
+        "value": 0,
+        "description": "Operating cost per km for transit mode."
+      }
+    },
+    "loan_payment_table": {
+      "description": "Estimated monthly payments for financed principal values at baseline term/APR.",
+      "baseline_term_months": 60,
+      "baseline_apr_percent": 7.5,
+      "points": [
+        {
+          "principal": 5000,
+          "monthly_payment": 100.19
+        },
+        {
+          "principal": 10000,
+          "monthly_payment": 200.38
+        },
+        {
+          "principal": 15000,
+          "monthly_payment": 300.56
+        },
+        {
+          "principal": 20000,
+          "monthly_payment": 400.75
+        },
+        {
+          "principal": 25000,
+          "monthly_payment": 500.94
+        },
+        {
+          "principal": 30000,
+          "monthly_payment": 601.13
+        }
+      ]
+    }
+  },
+  "teacher_mode": {
+    "default_passcode": "teacher123"
+  }
+}
