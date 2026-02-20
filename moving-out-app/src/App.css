@@ -234,7 +234,18 @@
 }
 
 .field-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
   font-weight: 700;
+}
+
+.section-guide ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.5rem;
 }
 
 .field-row input,
@@ -283,6 +294,69 @@
 
 .food-table input {
   min-width: 140px;
+}
+
+.food-table output {
+  display: inline-block;
+  min-width: 90px;
+}
+
+.field-info-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-trigger {
+  border: 1px solid #9eb4ce;
+  background: #f4f8ff;
+  color: #1e3f63;
+  border-radius: 999px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 0.45rem;
+  font-size: 0.76rem;
+}
+
+.info-popover {
+  position: absolute;
+  top: 1.9rem;
+  left: 0;
+  z-index: 30;
+  width: min(320px, 86vw);
+  padding: 0.65rem;
+  border: 1px solid #c7d7ea;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(22, 40, 64, 0.15);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.info-popover-title {
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.info-popover p {
+  margin: 0;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.row-button {
+  border: 1px solid #9eb4ce;
+  background: #f0f6ff;
+  color: #1d3e60;
+  padding: 0.32rem 0.55rem;
+  font-size: 0.82rem;
 }
 
 .dashboard-charts .card {

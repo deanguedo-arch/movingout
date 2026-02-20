@@ -1,9 +1,15 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { lookupDerivedValue } from "../../app/derivedLookup";
 import { getSectionFields, isReflectionRole } from "../../app/schemaSelectors";
 import { useAppState } from "../../app/state";
-import type { AssignmentField, FoodTableRow } from "../../schema";
+import { parseExpenseTableRows, parseFoodTableRows } from "../../rules";
+import type { AssignmentField, AssignmentFieldUi, InputValue } from "../../schema";
+
+type TableRow = {
+  id: string;
+  [key: string]: string | number;
+};
 
 function formatDerived(value: number | string, prefix?: string): string {
   if (typeof value === "number") {
@@ -13,6 +19,23 @@ function formatDerived(value: number | string, prefix?: string): string {
     return value.toFixed(2);
   }
   return String(value ?? "");
+}
+
+function toNumber(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return 0;
+}
+
+function roundCurrency(value: number): number {
+  return Number(value.toFixed(2));
 }
 
 function parseInputValue(field: AssignmentField, rawValue: string): string | number | boolean | null {
@@ -29,33 +52,106 @@ function parseInputValue(field: AssignmentField, rawValue: string): string | num
   return rawValue;
 }
 
-function parseFoodTable(value: string | number | boolean | null | undefined, defaultRows: number): FoodTableRow[] {
-  if (typeof value === "string" && value.trim().length > 0) {
-    try {
-      const parsed = JSON.parse(value) as FoodTableRow[];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((row, index) => ({
-          id: typeof row.id === "string" && row.id.length > 0 ? row.id : `row-${index + 1}`,
-          item: typeof row.item === "string" ? row.item : "",
-          planned_purchase: typeof row.planned_purchase === "string" ? row.planned_purchase : "",
-          estimated_cost:
-            typeof row.estimated_cost === "number" && Number.isFinite(row.estimated_cost)
-              ? row.estimated_cost
-              : 0,
-          source_url: typeof row.source_url === "string" ? row.source_url : "",
-        }));
-      }
-    } catch {
-      return [];
+function buildDefaultTableRows(field: AssignmentField): TableRow[] {
+  const defaultRows = field.ui?.default_rows ?? 5;
+  const columns = field.ui?.table_columns ?? [];
+  return Array.from({ length: defaultRows }, (_, index) => {
+    const row: TableRow = { id: `row-${index + 1}` };
+    columns.forEach((column) => {
+      row[column.id] = column.type === "number" || column.type === "derived" ? 0 : "";
+    });
+    return row;
+  });
+}
+
+function computeDerivedCellValue(row: TableRow, column: NonNullable<AssignmentFieldUi["table_columns"]>[number]): number {
+  switch (column.derived_formula) {
+    case "qty_x_unit_to_annual": {
+      return roundCurrency(toNumber(row.quantity_per_year) * toNumber(row.average_cost));
     }
+    case "annual_div_12": {
+      const source = column.source_column_id ? row[column.source_column_id] : row.annual_total;
+      return roundCurrency(toNumber(source) / 12);
+    }
+    case "sum_column": {
+      if (!column.source_column_id) {
+        return 0;
+      }
+      return roundCurrency(toNumber(row[column.source_column_id]));
+    }
+    default:
+      return 0;
   }
-  return Array.from({ length: defaultRows }, (_, index) => ({
-    id: `row-${index + 1}`,
-    item: "",
-    planned_purchase: "",
-    estimated_cost: 0,
-    source_url: "",
-  }));
+}
+
+function applyDerivedColumns(
+  row: TableRow,
+  columns: NonNullable<AssignmentFieldUi["table_columns"]>,
+): TableRow {
+  const next = { ...row };
+  columns.forEach((column) => {
+    if (column.type === "derived") {
+      next[column.id] = computeDerivedCellValue(next, column);
+    }
+  });
+  return next;
+}
+
+function parseTableRows(args: {
+  field: AssignmentField;
+  value: InputValue | undefined;
+  constants: ReturnType<typeof useAppState>["constants"];
+}): TableRow[] {
+  const { field, constants } = args;
+  const columns = field.ui?.table_columns ?? [];
+
+  if (field.type === "food_table") {
+    const rows = parseFoodTableRows({
+      inputs: {
+        [field.id]: args.value ?? null,
+      },
+      constants,
+    });
+    const mapped = rows.map((row, index) =>
+      applyDerivedColumns(
+        {
+          id: typeof row.id === "string" && row.id.length > 0 ? row.id : `row-${index + 1}`,
+          item: row.item,
+          planned_purchase: row.planned_purchase,
+          estimated_cost: row.estimated_cost,
+          source_url: row.source_url,
+        },
+        columns,
+      ),
+    );
+    return mapped.length > 0 ? mapped : buildDefaultTableRows(field);
+  }
+
+  if (field.type === "expense_table") {
+    const rows = parseExpenseTableRows({
+      inputs: {
+        [field.id]: args.value ?? null,
+      },
+      fieldId: field.id,
+    });
+    const mapped = rows.map((row, index) =>
+      applyDerivedColumns(
+        {
+          id: typeof row.id === "string" && row.id.length > 0 ? row.id : `row-${index + 1}`,
+          item: row.item,
+          quantity_per_year: row.quantity_per_year ?? 0,
+          average_cost: row.average_cost ?? 0,
+          annual_total: row.annual_total ?? 0,
+          monthly_total: row.monthly_total ?? 0,
+          source_url: row.source_url,
+        },
+        columns,
+      ),
+    );
+    return mapped.length > 0 ? mapped : buildDefaultTableRows(field);
+  }
+
+  return [];
 }
 
 function sourceBadge(status: "sourced" | "unsourced") {
@@ -132,6 +228,53 @@ function FieldRenderer({ field, value, onInputChange }: FieldRendererProps) {
   );
 }
 
+function InfoPopover(args: {
+  field: AssignmentField;
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+}) {
+  const { field, isOpen, onToggle, onClose } = args;
+  if (!field.ui?.info_blurb) {
+    return null;
+  }
+  const popoverId = `${field.id}-info-popover`;
+
+  return (
+    <span
+      className="field-info-wrapper"
+      onBlur={(event) => {
+        const nextFocus = event.relatedTarget as Node | null;
+        if (!event.currentTarget.contains(nextFocus)) {
+          onClose();
+        }
+      }}
+    >
+      <button
+        aria-controls={popoverId}
+        aria-expanded={isOpen}
+        aria-label={`More info about ${field.label}`}
+        className="info-trigger"
+        type="button"
+        onClick={onToggle}
+      >
+        (i)
+      </button>
+      {isOpen ? (
+        <div className="info-popover" id={popoverId} role="dialog">
+          <p className="info-popover-title">{field.ui.info_title ?? field.label}</p>
+          <p>{field.ui.info_blurb}</p>
+          {field.ui.info_source_url ? (
+            <a href={field.ui.info_source_url} rel="noreferrer" target="_blank">
+              {field.ui.info_source_label ?? "Source"}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </span>
+  );
+}
+
 export function SectionPage() {
   const { sectionId } = useParams();
   const {
@@ -144,6 +287,18 @@ export function SectionPage() {
     pinCategory,
     unpinCategory,
   } = useAppState();
+  const [openInfoFieldId, setOpenInfoFieldId] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenInfoFieldId(null);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const section = useMemo(
     () => schema.sections.find((item) => item.id === sectionId),
     [schema.sections, sectionId],
@@ -179,6 +334,23 @@ export function SectionPage() {
         <p>{section.description}</p>
       </header>
 
+      {section.guide ? (
+        <section className="card section-guide">
+          <h2>Section Guide</h2>
+          <ul>
+            <li>
+              <strong>What this part asks you to do:</strong> {section.guide.what_this_part}
+            </li>
+            <li>
+              <strong>What changed for today:</strong> {section.guide.updated_for_today}
+            </li>
+            <li>
+              <strong>How to research this now:</strong> {section.guide.how_to_research}
+            </li>
+          </ul>
+        </section>
+      ) : null}
+
       {sectionId === "income" ? (
         <div className="card highlight-card">
           <h2>Current Pay Anchor</h2>
@@ -211,7 +383,15 @@ export function SectionPage() {
             const derivedValue = lookupDerivedValue(submission.derived, field.compute_key);
             return (
               <div className="field-row" key={field.id}>
-                <label htmlFor={field.id}>{field.label}</label>
+                <label htmlFor={field.id}>
+                  {field.label}
+                  <InfoPopover
+                    field={field}
+                    isOpen={openInfoFieldId === field.id}
+                    onToggle={() => setOpenInfoFieldId(openInfoFieldId === field.id ? null : field.id)}
+                    onClose={() => setOpenInfoFieldId(null)}
+                  />
+                </label>
                 <output id={field.id}>{formatDerived(derivedValue, field.ui?.prefix)}</output>
               </div>
             );
@@ -227,90 +407,150 @@ export function SectionPage() {
                 : "unsourced"
               : null;
 
-          if (field.type === "food_table") {
-            const rows = parseFoodTable(value, field.ui?.default_rows ?? 8);
+          if (field.type === "food_table" || field.type === "expense_table") {
+            const rows = parseTableRows({
+              field,
+              value,
+              constants,
+            });
+            const columns = field.ui?.table_columns ?? [];
+            const tableSourceStatus = rows.some((row) => String(row.source_url ?? "").trim().length > 0)
+              ? "sourced"
+              : "unsourced";
+
             return (
               <div className="field-row" key={field.id}>
                 <label htmlFor={field.id}>
                   {field.label}
                   {field.required ? " *" : ""}
+                  <InfoPopover
+                    field={field}
+                    isOpen={openInfoFieldId === field.id}
+                    onToggle={() => setOpenInfoFieldId(openInfoFieldId === field.id ? null : field.id)}
+                    onClose={() => setOpenInfoFieldId(null)}
+                  />
                 </label>
                 <div className="food-table-wrapper">
                   <table className="food-table">
                     <thead>
                       <tr>
-                        <th>Item</th>
-                        <th>Planned Purchase</th>
-                        <th>Estimated Cost</th>
-                        <th>Source URL</th>
+                        {columns.map((column) => (
+                          <th key={`${field.id}-${column.id}`}>{column.label}</th>
+                        ))}
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((row, index) => (
+                      {rows.map((row, rowIndex) => (
                         <tr key={row.id}>
+                          {columns.map((column) => {
+                            const cellValue = row[column.id] ?? (column.type === "number" || column.type === "derived" ? 0 : "");
+                            if (column.type === "derived") {
+                              return (
+                                <td key={`${row.id}-${column.id}`}>
+                                  <output>{formatDerived(cellValue, "$")}</output>
+                                </td>
+                              );
+                            }
+
+                            if (column.type === "select") {
+                              return (
+                                <td key={`${row.id}-${column.id}`}>
+                                  <select
+                                    value={String(cellValue)}
+                                    onChange={(event) => {
+                                      const nextRows = [...rows];
+                                      const nextRow = {
+                                        ...nextRows[rowIndex],
+                                        [column.id]: event.target.value,
+                                      };
+                                      nextRows[rowIndex] = applyDerivedColumns(nextRow, columns);
+                                      void setInputValue(field.id, JSON.stringify(nextRows));
+                                    }}
+                                  >
+                                    <option value="">Select one</option>
+                                    {(column.options ?? []).map((option) => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
+                              );
+                            }
+
+                            return (
+                              <td key={`${row.id}-${column.id}`}>
+                                <input
+                                  min={column.type === "number" ? 0 : undefined}
+                                  step={column.type === "number" ? "0.01" : undefined}
+                                  type={column.type === "number" ? "number" : column.type === "url" ? "url" : "text"}
+                                  value={String(cellValue)}
+                                  onChange={(event) => {
+                                    const nextRows = [...rows];
+                                    const parsedValue =
+                                      column.type === "number"
+                                        ? roundCurrency(toNumber(event.target.value))
+                                        : event.target.value;
+                                    const nextRow = {
+                                      ...nextRows[rowIndex],
+                                      [column.id]: parsedValue,
+                                    };
+                                    nextRows[rowIndex] = applyDerivedColumns(nextRow, columns);
+                                    void setInputValue(field.id, JSON.stringify(nextRows));
+                                  }}
+                                />
+                              </td>
+                            );
+                          })}
                           <td>
-                            <input
-                              type="text"
-                              value={row.item}
-                              onChange={(event) => {
-                                const next = [...rows];
-                                next[index] = {
-                                  ...next[index],
-                                  item: event.target.value,
-                                };
-                                void setInputValue(field.id, JSON.stringify(next));
+                            <button
+                              className="row-button"
+                              type="button"
+                              onClick={() => {
+                                if (rows.length <= 1) {
+                                  return;
+                                }
+                                const nextRows = rows.filter((_, index) => index !== rowIndex);
+                                void setInputValue(field.id, JSON.stringify(nextRows));
                               }}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              value={row.planned_purchase}
-                              onChange={(event) => {
-                                const next = [...rows];
-                                next[index] = {
-                                  ...next[index],
-                                  planned_purchase: event.target.value,
-                                };
-                                void setInputValue(field.id, JSON.stringify(next));
-                              }}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              min={0}
-                              step="0.01"
-                              type="number"
-                              value={row.estimated_cost}
-                              onChange={(event) => {
-                                const parsed = Number(event.target.value);
-                                const next = [...rows];
-                                next[index] = {
-                                  ...next[index],
-                                  estimated_cost: Number.isFinite(parsed) ? parsed : 0,
-                                };
-                                void setInputValue(field.id, JSON.stringify(next));
-                              }}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="url"
-                              value={row.source_url}
-                              onChange={(event) => {
-                                const next = [...rows];
-                                next[index] = {
-                                  ...next[index],
-                                  source_url: event.target.value,
-                                };
-                                void setInputValue(field.id, JSON.stringify(next));
-                              }}
-                            />
+                            >
+                              Remove
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+                <div className="table-actions">
+                  <button
+                    className="row-button"
+                    type="button"
+                    onClick={() => {
+                      const defaultRow = buildDefaultTableRows({
+                        ...field,
+                        ui: {
+                          ...field.ui,
+                          default_rows: 1,
+                        },
+                      })[0];
+                      const nextRows = [
+                        ...rows,
+                        applyDerivedColumns(
+                          {
+                            ...defaultRow,
+                            id: `row-${rows.length + 1}`,
+                          },
+                          columns,
+                        ),
+                      ];
+                      void setInputValue(field.id, JSON.stringify(nextRows));
+                    }}
+                  >
+                    Add Row
+                  </button>
+                  {sourceBadge(tableSourceStatus)}
                 </div>
                 {field.ui?.help_text ? <small>{field.ui.help_text}</small> : null}
               </div>
@@ -322,6 +562,12 @@ export function SectionPage() {
               <label htmlFor={field.id}>
                 {field.label}
                 {field.required ? " *" : ""}
+                <InfoPopover
+                  field={field}
+                  isOpen={openInfoFieldId === field.id}
+                  onToggle={() => setOpenInfoFieldId(openInfoFieldId === field.id ? null : field.id)}
+                  onClose={() => setOpenInfoFieldId(null)}
+                />
               </label>
               <FieldRenderer
                 field={field}
