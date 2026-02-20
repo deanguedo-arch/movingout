@@ -1,0 +1,8 @@
+# Rule: Small Checkpoints
+
+Implement work in small, reviewable checkpoints:
+- each checkpoint has a narrow scope,
+- each checkpoint is verifiable (tests or clear manual checks),
+- each checkpoint is committed before starting the next one.
+
+Avoid large mixed commits that combine unrelated concerns.

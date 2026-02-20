@@ -1,0 +1,8 @@
+# Rule: Inspect Before Coding
+
+Before implementing any feature:
+- inspect current files and architecture in the target area,
+- identify reusable code paths,
+- confirm existing schema/types/contracts.
+
+Do not start coding from assumptions when repository truth is available.

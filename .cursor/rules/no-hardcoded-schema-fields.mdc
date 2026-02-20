@@ -1,0 +1,11 @@
+# Rule: No Hardcoded Assignment Fields in UI
+
+UI forms must render sections and fields from `schema/assignment.schema.json`.
+
+Prohibited:
+- hardcoding assignment field IDs in page components to build forms,
+- embedding static section structures that diverge from schema.
+
+Allowed:
+- generic field renderers by type,
+- reusable UI controls that receive schema field definitions as props.

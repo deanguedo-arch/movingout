@@ -1,0 +1,8 @@
+# Rule: Tests Required for Rules Changes
+
+Any change to deterministic logic under `src/rules/` must include tests:
+- add or update unit tests for changed behavior,
+- keep fixtures aligned with expected outputs,
+- verify the full test command passes.
+
+No rule-engine changes should merge without test coverage.
