@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { lookupDerivedValue } from "../../app/derivedLookup";
-import { getSectionFields, isReflectionRole, useAppState } from "../../app/state";
+import { getSectionFields, isReflectionRole } from "../../app/schemaSelectors";
+import { useAppState } from "../../app/state";
 import type { AssignmentField } from "../../schema";
 
 function formatDerived(value: number | string, prefix?: string): string {

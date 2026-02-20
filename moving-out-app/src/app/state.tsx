@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { removeEvidenceByType, upsertEvidenceForType } from "../evidence/evidenceService";
 import { buildSubmissionZip } from "../export/exportZip";
@@ -8,7 +9,6 @@ import { applyPinnedChoice, createPinnedChoice, removePinnedChoice } from "../pi
 import { computeBudget, computeReadinessFlags } from "../rules";
 import { getAssignmentSchema, getDefaultConstants } from "../schema";
 import type {
-  AssignmentField,
   AssignmentSchema,
   Constants,
   EvidenceFile,
@@ -19,10 +19,12 @@ import type {
   Submission,
 } from "../schema";
 import {
+  clearConstantsOverrides,
   getConstantsOverrides,
   getSubmission,
   listEvidenceFiles,
   listEvidenceItems,
+  saveConstantsOverrides,
   saveSubmission,
 } from "../storage/repositories";
 
@@ -39,6 +41,8 @@ type AppStateContextValue = {
   removeEvidence: (type: EvidenceType) => Promise<void>;
   pinCategory: (category: "housing" | "transportation") => Promise<void>;
   unpinCategory: (category: "housing" | "transportation") => Promise<void>;
+  setConstantsOverride: (nextConstants: Constants, changedKeys: string[]) => Promise<void>;
+  resetConstantsToDefault: () => Promise<void>;
   exportSubmissionPackage: () => Promise<Blob>;
   importSubmissionPackage: (zipBlob: Blob) => Promise<void>;
   recomputeNow: () => Promise<void>;
@@ -127,15 +131,11 @@ function recomputeSubmission(args: {
   };
 }
 
-function isReflectionField(field: AssignmentField): boolean {
-  return field.role === "reflection";
-}
-
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [constants, setConstants] = useState<Constants>(defaultConstants);
+  const [constants, setConstantsState] = useState<Constants>(defaultConstants);
   const [submission, setSubmission] = useState<Submission>(
     buildInitialSubmission({
       schema,
@@ -170,7 +170,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       evidence: evidenceItems,
     });
 
-    setConstants(activeConstants);
+    setConstantsState(activeConstants);
     setEvidence(evidenceItems);
     setEvidenceFiles(files);
     setSubmission(hydrated);
@@ -179,6 +179,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reloadFromStorage();
   }, [reloadFromStorage]);
 
@@ -347,6 +348,41 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [constants, evidence, persistSubmission, submission],
   );
 
+  const setConstantsOverride = useCallback(
+    async (nextConstants: Constants, changedKeys: string[]) => {
+      await saveConstantsOverrides(nextConstants);
+      setConstantsState(nextConstants);
+      const recomputed = recomputeSubmission({
+        submission,
+        schema,
+        constants: nextConstants,
+        evidence,
+      });
+      await appendEvent("CONSTANTS_EDIT", {
+        changed_keys: changedKeys,
+        constants_version: nextConstants.constants_version,
+      });
+      await persistSubmission(recomputed);
+    },
+    [evidence, persistSubmission, submission],
+  );
+
+  const resetConstantsToDefault = useCallback(async () => {
+    await clearConstantsOverrides();
+    setConstantsState(defaultConstants);
+    const recomputed = recomputeSubmission({
+      submission,
+      schema,
+      constants: defaultConstants,
+      evidence,
+    });
+    await appendEvent("CONSTANTS_EDIT", {
+      reset_to_default: true,
+      constants_version: defaultConstants.constants_version,
+    });
+    await persistSubmission(recomputed);
+  }, [evidence, persistSubmission, submission]);
+
   const exportSubmissionPackage = useCallback(async (): Promise<Blob> => {
     await appendEvent("EXPORT", {
       submission_id: submission.id,
@@ -388,6 +424,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       removeEvidence,
       pinCategory,
       unpinCategory,
+      setConstantsOverride,
+      resetConstantsToDefault,
       exportSubmissionPackage,
       importSubmissionPackage,
       recomputeNow,
@@ -402,9 +440,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       loading,
       removeEvidence,
       pinCategory,
+      resetConstantsToDefault,
       recomputeNow,
       reloadFromStorage,
       saveEvidence,
+      setConstantsOverride,
       setInputValue,
       setReflectionValue,
       submission,
@@ -421,12 +461,4 @@ export function useAppState(): AppStateContextValue {
     throw new Error("useAppState must be used inside AppStateProvider");
   }
   return context;
-}
-
-export function getSectionFields(schemaDef: AssignmentSchema, sectionId: string): AssignmentField[] {
-  return schemaDef.fields.filter((field) => field.section_id === sectionId);
-}
-
-export function isReflectionRole(field: AssignmentField): boolean {
-  return isReflectionField(field);
 }

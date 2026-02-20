@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# Moving Out Project Budget App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Offline-first React + TypeScript app for the "Moving Out / Life After High School Budgeting" assignment.
 
-Currently, two official plugins are available:
+## Stack
+- Vite + React + TypeScript
+- IndexedDB (`idb`) for local persistence (submission, evidence blobs, logs)
+- Vitest for deterministic rule/storage/export tests
+- JSZip for ZIP export/import
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Core Product Features
+- Schema-driven assignment UI from `schema/assignment.schema.json`
+- Teacher constants from `schema/constants.json` with teacher-mode overrides
+- Deterministic rules engine (`src/rules/compute.ts`, `src/rules/flags.ts`)
+- Evidence capture (URL + optional `jpg/png/webp/pdf` upload) stored as blobs
+- Append-only event log for edits/evidence/compute/pin/export/import/constants
+- Pinning for housing + transportation choices
+- Comparison Sheet artifact generation from pinned items only
+- ZIP export/import workflow for full submission package transfer
+- Service worker registration for offline-first usage after initial load
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Install / Run
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Test / Build / Lint
+```bash
+npm test
+npm run build
+npm run lint
 ```
+
+## Data and Single Source of Truth
+- Assignment schema: `schema/assignment.schema.json`
+- Scenario constants: `schema/constants.json`
+
+React sections/forms are rendered from schema definitions and compute/flags run from pure functions.
+
+## Key Paths
+- Rules engine: `src/rules/`
+- Storage and logs: `src/storage/`, `src/logs/`
+- Evidence + pinning + artifacts: `src/evidence/`, `src/pinning/`, `src/artifacts/`
+- Export/import: `src/export/`
+- Screen features: `src/features/`
+- Test fixtures: `fixtures/submissions/`, `fixtures/expected/`
+
+## ZIP Contents
+Export package contains:
+- `submission.json`
+- `schema.json`
+- `constants.json`
+- `event_log.jsonl`
+- `evidence/items.json`
+- `evidence/manifest.json`
+- `evidence/evidence_<fileId>_<filename>`
+- `artifacts/comparison_sheet.html`
+- `artifacts/summary.json`
+- `teacher_summary.json`
+
+## Notes
+- Teacher passcode default comes from `schema/constants.json` (`teacher_mode.default_passcode`).
+- This app is local-first and does not require network access after initial asset cache.

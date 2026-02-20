@@ -15,6 +15,7 @@ export function EvidencePage() {
       const item = evidence.find((entry) => entry.type === requirement.id);
       nextDrafts[requirement.id] = item?.url ?? "";
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUrlDrafts(nextDrafts);
   }, [evidence, schema.evidence_requirements]);
 
