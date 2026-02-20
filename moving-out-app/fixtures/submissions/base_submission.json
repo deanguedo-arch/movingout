@@ -1,0 +1,45 @@
+{
+  "id": "submission_base_001",
+  "schema_version": "1.0.0",
+  "constants_version": "1.0.0",
+  "student": {
+    "name": "Sample Student",
+    "class": "CALM 20",
+    "teacher": "Ms. Example"
+  },
+  "inputs": {
+    "student_name": "Sample Student",
+    "class_name": "CALM 20",
+    "teacher_name": "Ms. Example",
+    "hourly_wage": 22,
+    "hours_per_week": 30,
+    "other_monthly_income": 200,
+    "housing_option_label": "Basement Suite",
+    "rent_monthly": 900,
+    "utilities_monthly": 150,
+    "renter_insurance_monthly": 20,
+    "internet_phone_monthly": 90,
+    "other_housing_monthly": 40,
+    "transport_option_label": "Used Compact Car",
+    "transport_mode": "car",
+    "vehicle_price": 16000,
+    "vehicle_down_payment_amount": null,
+    "vehicle_term_months": null,
+    "vehicle_apr_percent": null,
+    "km_per_week": 160,
+    "transit_monthly_pass": 0,
+    "transport_insurance_monthly": 180,
+    "parking_monthly": 60,
+    "groceries_monthly": 350,
+    "health_medical_monthly": 60,
+    "personal_monthly": 120,
+    "entertainment_monthly": 100,
+    "savings_monthly": 200,
+    "other_expenses_monthly": 80
+  },
+  "reflections": {
+    "ref_values_alignment": "I chose an affordable place close to work and school so I can balance money and time.",
+    "ref_budget_adjustments": "If money is tight, I would reduce entertainment and lower parking costs by carpooling.",
+    "ref_confidence": "I am moderately confident because most costs are estimated from current listings and prices."
+  }
+}

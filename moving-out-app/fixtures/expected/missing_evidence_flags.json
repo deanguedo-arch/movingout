@@ -1,0 +1,8 @@
+{
+  "missing_required_fields": [],
+  "missing_required_evidence": ["rental_ad", "vehicle_ad"],
+  "affordability_fail": true,
+  "deficit": true,
+  "fragile_buffer": true,
+  "surplus_or_deficit_amount": -427.39
+}

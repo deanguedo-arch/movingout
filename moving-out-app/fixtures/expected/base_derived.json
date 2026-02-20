@@ -1,0 +1,44 @@
+{
+  "gross_monthly_income": 3057.8,
+  "net_monthly_income": 2335.85,
+  "deductions": {
+    "income_tax": 458.67,
+    "cpp": 181.94,
+    "ei": 50.76,
+    "union_dues": 30.58,
+    "total": 721.95
+  },
+  "housing": {
+    "rent": 900,
+    "utilities": 150,
+    "renter_insurance": 20,
+    "internet_phone": 90,
+    "other": 40,
+    "total": 1200
+  },
+  "transportation": {
+    "mode": "car",
+    "vehicle_price": 16000,
+    "down_payment": 1600,
+    "financed_principal": 14400,
+    "term_months": 60,
+    "apr_percent": 7.5,
+    "loan_payment": 288.54,
+    "operating_cost": 124.7,
+    "transit_pass": 0,
+    "insurance": 180,
+    "parking": 60,
+    "total": 653.24
+  },
+  "living_expenses": {
+    "groceries": 350,
+    "health_medical": 60,
+    "personal": 120,
+    "entertainment": 100,
+    "savings": 200,
+    "other": 80,
+    "total": 910
+  },
+  "total_monthly_expenses": 2763.24,
+  "monthly_surplus": -427.39
+}
