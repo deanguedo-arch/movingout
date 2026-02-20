@@ -66,6 +66,179 @@ const EMPTY_FLAGS: ReadinessFlags = {
   fix_next: [],
 };
 
+function rounded(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+function getInputNumber(inputs: Submission["inputs"], fieldId: string): number {
+  const raw = inputs[fieldId];
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    return raw;
+  }
+  if (typeof raw === "string") {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return 0;
+}
+
+function buildDefaultFoodRows(constants: Constants) {
+  return constants.food.default_items.map((item, index) => ({
+    id: `seed-${index + 1}`,
+    item,
+    planned_purchase: "",
+    estimated_cost: 0,
+    source_url: "",
+  }));
+}
+
+function buildMigratedAnnualRows(args: { label: string; monthlyValue: number }) {
+  const { label, monthlyValue } = args;
+  const monthly = rounded(monthlyValue);
+  const annual = rounded(monthlyValue * 12);
+  return [
+    {
+      id: `legacy-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      item: `Migrated ${label} total`,
+      quantity_per_year: 1,
+      average_cost: annual,
+      annual_total: annual,
+      monthly_total: monthly,
+      source_url: "",
+    },
+  ];
+}
+
+function buildMigratedMonthlyRows(args: { label: string; monthlyValue: number }) {
+  const { label, monthlyValue } = args;
+  return [
+    {
+      id: `legacy-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      item: `Migrated ${label} total`,
+      monthly_total: rounded(monthlyValue),
+      source_url: "",
+    },
+  ];
+}
+
+function migrateSubmissionToCurrentSchema(args: {
+  submission: Submission;
+  schema: AssignmentSchema;
+  constants: Constants;
+}): Submission {
+  const { submission, schema: schemaDef, constants } = args;
+  let changed = false;
+  const nextInputs: Submission["inputs"] = { ...submission.inputs };
+  const nextReflections: Submission["reflections"] = { ...submission.reflections };
+
+  schemaDef.fields.forEach((field) => {
+    if (field.role === "reflection") {
+      if (typeof nextReflections[field.id] !== "string") {
+        nextReflections[field.id] = "";
+        changed = true;
+      }
+      return;
+    }
+    if (field.role !== "input") {
+      return;
+    }
+    if (field.id in nextInputs) {
+      return;
+    }
+    changed = true;
+    if (field.type === "checkbox") {
+      nextInputs[field.id] = false;
+      return;
+    }
+    if (field.id === "income_mode") {
+      nextInputs[field.id] = constants.income.default_mode;
+      return;
+    }
+    if (field.id === "paycheques_per_month") {
+      nextInputs[field.id] = 2;
+      return;
+    }
+    if (field.id === "transport_mode") {
+      nextInputs[field.id] = "car";
+      return;
+    }
+    if (field.id === "food_table_weekly") {
+      nextInputs[field.id] = JSON.stringify(buildDefaultFoodRows(constants));
+      return;
+    }
+    nextInputs[field.id] = null;
+  });
+
+  const foodTableRaw = nextInputs.food_table_weekly;
+  if (typeof foodTableRaw !== "string" || foodTableRaw.trim().length === 0) {
+    nextInputs.food_table_weekly = JSON.stringify(buildDefaultFoodRows(constants));
+    changed = true;
+  }
+
+  const clothingRaw = nextInputs.clothing_table_annual;
+  if ((typeof clothingRaw !== "string" || clothingRaw.trim().length === 0) && getInputNumber(nextInputs, "clothing_monthly") > 0) {
+    nextInputs.clothing_table_annual = JSON.stringify(
+      buildMigratedAnnualRows({
+        label: "clothing",
+        monthlyValue: getInputNumber(nextInputs, "clothing_monthly"),
+      }),
+    );
+    changed = true;
+  }
+
+  const healthRaw = nextInputs.health_hygiene_table_annual;
+  if ((typeof healthRaw !== "string" || healthRaw.trim().length === 0) && getInputNumber(nextInputs, "health_hygiene_monthly") > 0) {
+    nextInputs.health_hygiene_table_annual = JSON.stringify(
+      buildMigratedAnnualRows({
+        label: "health hygiene",
+        monthlyValue: getInputNumber(nextInputs, "health_hygiene_monthly"),
+      }),
+    );
+    changed = true;
+  }
+
+  const recreationRaw = nextInputs.recreation_table_annual;
+  if ((typeof recreationRaw !== "string" || recreationRaw.trim().length === 0) && getInputNumber(nextInputs, "recreation_monthly") > 0) {
+    nextInputs.recreation_table_annual = JSON.stringify(
+      buildMigratedAnnualRows({
+        label: "recreation",
+        monthlyValue: getInputNumber(nextInputs, "recreation_monthly"),
+      }),
+    );
+    changed = true;
+  }
+
+  const miscRaw = nextInputs.misc_table_monthly;
+  if ((typeof miscRaw !== "string" || miscRaw.trim().length === 0) && getInputNumber(nextInputs, "misc_monthly") > 0) {
+    nextInputs.misc_table_monthly = JSON.stringify(
+      buildMigratedMonthlyRows({
+        label: "misc",
+        monthlyValue: getInputNumber(nextInputs, "misc_monthly"),
+      }),
+    );
+    changed = true;
+  }
+
+  const versionChanged =
+    submission.schema_version !== schemaDef.schema_version ||
+    submission.constants_version !== constants.constants_version;
+
+  if (!changed && !versionChanged) {
+    return submission;
+  }
+
+  return {
+    ...submission,
+    schema_version: schemaDef.schema_version,
+    constants_version: constants.constants_version,
+    inputs: nextInputs,
+    reflections: nextReflections,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 function buildInitialSubmission(args: { schema: AssignmentSchema; constants: Constants; evidence: EvidenceItem[] }): Submission {
   const { schema: schemaDef, constants, evidence } = args;
   const inputs: Submission["inputs"] = {};
@@ -94,14 +267,7 @@ function buildInitialSubmission(args: { schema: AssignmentSchema; constants: Con
         return;
       }
       if (field.id === "food_table_weekly") {
-        const rows = constants.food.default_items.map((item, index) => ({
-          id: `seed-${index + 1}`,
-          item,
-          planned_purchase: "",
-          estimated_cost: 0,
-          source_url: "",
-        }));
-        inputs[field.id] = JSON.stringify(rows);
+        inputs[field.id] = JSON.stringify(buildDefaultFoodRows(constants));
         return;
       }
       inputs[field.id] = null;
@@ -194,8 +360,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         constants: activeConstants,
         evidence: evidenceItems,
       });
-    const hydrated = recomputeSubmission({
+    const migrated = migrateSubmissionToCurrentSchema({
       submission: baseSubmission,
+      schema,
+      constants: activeConstants,
+    });
+    const hydrated = recomputeSubmission({
+      submission: migrated,
       schema,
       constants: activeConstants,
       evidence: evidenceItems,

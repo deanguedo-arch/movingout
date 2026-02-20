@@ -24,6 +24,14 @@ export function lookupDerivedValue(derived: DerivedTotals, computeKey: string | 
       return derived.living_expenses.groceries_weekly;
     case "groceries_monthly":
       return derived.living_expenses.groceries;
+    case "clothing_monthly_derived":
+      return derived.living_expenses.clothing;
+    case "health_hygiene_monthly_derived":
+      return derived.living_expenses.health_hygiene;
+    case "recreation_monthly_derived":
+      return derived.living_expenses.recreation;
+    case "misc_monthly_derived":
+      return derived.living_expenses.misc;
     case "essentials_total":
       return derived.living_expenses.total;
     case "total_monthly_expenses":

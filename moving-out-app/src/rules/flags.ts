@@ -7,7 +7,7 @@ import type {
   Submission,
 } from "../schema";
 import { roundCurrency } from "./currency";
-import { parseFoodTableRows } from "./compute";
+import { parseExpenseTableRows, parseFoodTableRows } from "./compute";
 
 function hasValue(value: unknown): boolean {
   if (typeof value === "number") {
@@ -40,6 +40,54 @@ function mapMissingFieldLabels(fields: AssignmentField[], missingFieldIds: strin
   return missingFieldIds.map((id) => fieldMap.get(id) ?? id);
 }
 
+function isExpenseTableFieldSatisfied(args: {
+  fieldId: string;
+  submission: Submission;
+}): boolean {
+  const { fieldId, submission } = args;
+  const rows = parseExpenseTableRows({
+    inputs: submission.inputs,
+    fieldId,
+  });
+
+  if (fieldId === "clothing_table_annual") {
+    if (rows.length === 0 && getNumber(submission.inputs.clothing_monthly) > 0) {
+      return true;
+    }
+    return rows.some((row) => {
+      const annualFromQty = (row.quantity_per_year ?? 0) * (row.average_cost ?? 0);
+      return annualFromQty > 0 || (row.annual_total ?? 0) > 0;
+    });
+  }
+
+  if (fieldId === "health_hygiene_table_annual" || fieldId === "recreation_table_annual") {
+    if (
+      rows.length === 0 &&
+      ((fieldId === "health_hygiene_table_annual" && getNumber(submission.inputs.health_hygiene_monthly) > 0) ||
+        (fieldId === "recreation_table_annual" && getNumber(submission.inputs.recreation_monthly) > 0))
+    ) {
+      return true;
+    }
+    return rows.some((row) => (row.annual_total ?? 0) > 0 || (row.monthly_total ?? 0) > 0);
+  }
+
+  if (fieldId === "misc_table_monthly") {
+    if (rows.length === 0 && getNumber(submission.inputs.misc_monthly) > 0) {
+      return true;
+    }
+    return rows.some((row) => (row.monthly_total ?? 0) > 0);
+  }
+
+  return rows.some((row) => {
+    const annualFromQty = (row.quantity_per_year ?? 0) * (row.average_cost ?? 0);
+    return (
+      annualFromQty > 0 ||
+      (row.annual_total ?? 0) > 0 ||
+      (row.monthly_total ?? 0) > 0
+    );
+  });
+}
+
 function getMissingFieldIds(schema: AssignmentSchema, submission: Submission, constants: Constants): string[] {
   const missing = new Set<string>();
   const requiredFields = schema.fields.filter((field) => field.required);
@@ -52,6 +100,30 @@ function getMissingFieldIds(schema: AssignmentSchema, submission: Submission, co
       }
       continue;
     }
+
+    if (field.type === "food_table") {
+      const foodRows = parseFoodTableRows({
+        inputs: submission.inputs,
+        constants,
+      });
+      if (!foodRows.some((row) => row.estimated_cost > 0)) {
+        missing.add(field.id);
+      }
+      continue;
+    }
+
+    if (field.type === "expense_table") {
+      if (
+        !isExpenseTableFieldSatisfied({
+          fieldId: field.id,
+          submission,
+        })
+      ) {
+        missing.add(field.id);
+      }
+      continue;
+    }
+
     const inputValue = submission.inputs[field.id];
     if (!hasValue(inputValue)) {
       missing.add(field.id);
@@ -91,14 +163,6 @@ function getMissingFieldIds(schema: AssignmentSchema, submission: Submission, co
     if (getNumber(submission.inputs.gas_price_per_litre) <= 0) {
       missing.add("gas_price_per_litre");
     }
-  }
-
-  const foodRows = parseFoodTableRows({
-    inputs: submission.inputs,
-    constants,
-  });
-  if (foodRows.every((row) => row.estimated_cost <= 0)) {
-    missing.add("food_table_weekly");
   }
 
   return [...missing];
@@ -150,8 +214,21 @@ function computeUnsourcedCategories(args: {
     inputs: submission.inputs,
     constants,
   });
-  if (!foodRows.some((row) => row.source_url.trim().length > 0)) {
-    categories.push("food");
+  const foodHasSource = foodRows.some((row) => row.source_url.trim().length > 0);
+  const essentialTables = [
+    "clothing_table_annual",
+    "health_hygiene_table_annual",
+    "recreation_table_annual",
+    "misc_table_monthly",
+  ];
+  const essentialsHasSource = essentialTables.some((fieldId) =>
+    parseExpenseTableRows({
+      inputs: submission.inputs,
+      fieldId,
+    }).some((row) => row.source_url.trim().length > 0),
+  );
+  if (!foodHasSource && !essentialsHasSource) {
+    categories.push("essentials");
   }
 
   return categories;

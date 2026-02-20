@@ -1,4 +1,4 @@
-import type { Constants, DerivedTotals, FoodTableRow, InputMap } from "../schema";
+import type { Constants, DerivedTotals, ExpenseTableRow, FoodTableRow, InputMap } from "../schema";
 import { fromCents, roundCurrency, sumCents, toCents } from "./currency";
 
 function getNumberInput(inputs: InputMap, fieldId: string): number {
@@ -221,6 +221,53 @@ export function parseFoodTableRows(args: {
   }
 }
 
+export function parseExpenseTableRows(args: {
+  inputs: InputMap;
+  fieldId: string;
+}): ExpenseTableRow[] {
+  const { inputs, fieldId } = args;
+  const raw = inputs[fieldId];
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as ExpenseTableRow[];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.map((row, index) => {
+      const quantityPerYear =
+        typeof row.quantity_per_year === "number" && Number.isFinite(row.quantity_per_year)
+          ? row.quantity_per_year
+          : 0;
+      const averageCost =
+        typeof row.average_cost === "number" && Number.isFinite(row.average_cost)
+          ? row.average_cost
+          : 0;
+      const annualTotal =
+        typeof row.annual_total === "number" && Number.isFinite(row.annual_total)
+          ? row.annual_total
+          : 0;
+      const monthlyTotal =
+        typeof row.monthly_total === "number" && Number.isFinite(row.monthly_total)
+          ? row.monthly_total
+          : 0;
+      return {
+        id: typeof row.id === "string" && row.id.length > 0 ? row.id : `row-${index + 1}`,
+        item: typeof row.item === "string" ? row.item : "",
+        quantity_per_year: quantityPerYear,
+        average_cost: averageCost,
+        annual_total: annualTotal,
+        monthly_total: monthlyTotal,
+        source_url: typeof row.source_url === "string" ? row.source_url : "",
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 export function computeMonthlyHousingTotals(args: {
   inputs: InputMap;
   netMonthlyIncome: number;
@@ -327,12 +374,68 @@ function computeLivingExpenses(args: {
   const groceriesMonthly = roundCurrency(
     groceriesWeekly * constants.food.weeks_per_month.value,
   );
-  const clothing = getNumberInput(inputs, "clothing_monthly");
+  const clothingRows = parseExpenseTableRows({
+    inputs,
+    fieldId: "clothing_table_annual",
+  });
+  const clothingAnnualTotal = roundCurrency(
+    clothingRows.reduce((sum, row) => {
+      const computedAnnual =
+        (row.quantity_per_year ?? 0) > 0 && (row.average_cost ?? 0) > 0
+          ? (row.quantity_per_year ?? 0) * (row.average_cost ?? 0)
+          : 0;
+      const annual = Math.max(computedAnnual, row.annual_total ?? 0);
+      return sum + annual;
+    }, 0),
+  );
+  const clothingFromTable = roundCurrency(clothingAnnualTotal / 12);
+  const clothingLegacy = getNumberInput(inputs, "clothing_monthly");
+  const clothing =
+    clothingRows.length > 0 || clothingLegacy <= 0 ? clothingFromTable : roundCurrency(clothingLegacy);
+
   const householdMaintenance = getNumberInput(inputs, "household_maintenance_monthly");
-  const healthHygiene = getNumberInput(inputs, "health_hygiene_monthly");
-  const recreation = getNumberInput(inputs, "recreation_monthly");
+
+  const healthRows = parseExpenseTableRows({
+    inputs,
+    fieldId: "health_hygiene_table_annual",
+  });
+  const healthFromTable = roundCurrency(
+    healthRows.reduce((sum, row) => {
+      const monthlyFromAnnual = roundCurrency((row.annual_total ?? 0) / 12);
+      return sum + Math.max(monthlyFromAnnual, row.monthly_total ?? 0);
+    }, 0),
+  );
+  const healthLegacy = getNumberInput(inputs, "health_hygiene_monthly");
+  const healthHygiene =
+    healthRows.length > 0 || healthLegacy <= 0 ? healthFromTable : roundCurrency(healthLegacy);
+
+  const recreationRows = parseExpenseTableRows({
+    inputs,
+    fieldId: "recreation_table_annual",
+  });
+  const recreationFromTable = roundCurrency(
+    recreationRows.reduce((sum, row) => {
+      const monthlyFromAnnual = roundCurrency((row.annual_total ?? 0) / 12);
+      return sum + Math.max(monthlyFromAnnual, row.monthly_total ?? 0);
+    }, 0),
+  );
+  const recreationLegacy = getNumberInput(inputs, "recreation_monthly");
+  const recreation =
+    recreationRows.length > 0 || recreationLegacy <= 0
+      ? recreationFromTable
+      : roundCurrency(recreationLegacy);
+
   const savings = getNumberInput(inputs, "savings_monthly");
-  const misc = getNumberInput(inputs, "misc_monthly");
+
+  const miscRows = parseExpenseTableRows({
+    inputs,
+    fieldId: "misc_table_monthly",
+  });
+  const miscFromTable = roundCurrency(
+    miscRows.reduce((sum, row) => sum + (row.monthly_total ?? 0), 0),
+  );
+  const miscLegacy = getNumberInput(inputs, "misc_monthly");
+  const misc = miscRows.length > 0 || miscLegacy <= 0 ? miscFromTable : roundCurrency(miscLegacy);
 
   const total = fromCents(
     sumCents([
